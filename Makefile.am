@@ -53,7 +53,7 @@ EXTRA_DIST = docs rpm Doxyfile LICENSE.txt GPL-LICENSE.txt MIT-LICENSE.txt \
 
 ## Examples
 noinst_PROGRAMS = examples/active examples/roster examples/basic examples/bot \
-	examples/component examples/uuid
+	examples/component examples/uuid examples/vcard
 examples_active_SOURCES = examples/active.c
 examples_active_CFLAGS = $(STROPHE_FLAGS)
 examples_active_LDADD = $(STROPHE_LIBS)
@@ -72,6 +72,9 @@ examples_component_LDADD = $(STROPHE_LIBS)
 examples_uuid_SOURCES = examples/uuid.c
 examples_uuid_CFLAGS = $(STROPHE_FLAGS)
 examples_uuid_LDADD = $(STROPHE_LIBS)
+examples_vcard_SOURCES = examples/vcard.c
+examples_vcard_CFLAGS = $(STROPHE_FLAGS)
+examples_vcard_LDADD = $(STROPHE_LIBS)
 
 
 ## Tests
