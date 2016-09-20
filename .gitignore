@@ -35,6 +35,7 @@ examples/basic
 examples/bot
 examples/component
 examples/roster
+examples/server
 examples/uuid
 test_stamp
 test-suite.log

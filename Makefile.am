@@ -23,7 +23,7 @@ libstrophe_la_LDFLAGS = $(SSL_LIBS) $(PARSER_LIBS) $(RESOLV_LIBS) -no-undefined
 libstrophe_la_LDFLAGS += -export-symbols-regex '^xmpp_'
 libstrophe_la_SOURCES = src/auth.c src/conn.c src/crypto.c src/ctx.c \
 	src/event.c src/handler.c src/hash.c src/jid.c src/md5.c \
-	src/resolver.c src/sasl.c src/scram.c src/sha1.c \
+	src/resolver.c src/sasl.c src/scram.c src/server.c src/sha1.c \
 	src/snprintf.c src/sock.c src/stanza.c src/util.c \
 	src/rand.c src/uuid.c \
 	src/common.h src/hash.h src/md5.h src/ostypes.h src/parser.h \
@@ -53,7 +53,7 @@ EXTRA_DIST = docs rpm Doxyfile LICENSE.txt GPL-LICENSE.txt MIT-LICENSE.txt \
 
 ## Examples
 noinst_PROGRAMS = examples/active examples/roster examples/basic examples/bot \
-	examples/component examples/uuid
+	examples/component examples/server examples/uuid
 examples_active_SOURCES = examples/active.c
 examples_active_CFLAGS = $(STROPHE_FLAGS)
 examples_active_LDADD = $(STROPHE_LIBS)
@@ -69,6 +69,9 @@ examples_bot_LDADD = $(STROPHE_LIBS)
 examples_component_SOURCES = examples/component.c
 examples_component_CFLAGS = $(STROPHE_FLAGS)
 examples_component_LDADD = $(STROPHE_LIBS)
+examples_server_SOURCES = examples/server.c
+examples_server_CFLAGS = $(STROPHE_FLAGS)
+examples_server_LDADD = $(STROPHE_LIBS)
 examples_uuid_SOURCES = examples/uuid.c
 examples_uuid_CFLAGS = $(STROPHE_FLAGS)
 examples_uuid_LDADD = $(STROPHE_LIBS)
