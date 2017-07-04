@@ -1,7 +1,7 @@
 /* parser.c
 ** strophe XMPP client library -- xml parser handlers and utility functions
 **
-** Copyright (C) 2005-2009 Collecta, Inc. 
+** Copyright (C) 2005-2009 Collecta, Inc.
 **
 **  This software is provided AS-IS with no warranty, either express
 **  or implied.
@@ -276,7 +276,7 @@ int parser_reset(parser_t *parser)
     if (parser->expat)
 	XML_ParserFree(parser->expat);
 
-    if (parser->stanza) 
+    if (parser->stanza)
 	xmpp_stanza_release(parser->stanza);
 
     parser->expat = XML_ParserCreateNS(NULL, NAMESPACE_SEP);
