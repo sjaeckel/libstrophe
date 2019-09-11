@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <strophe.h>
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-    xmpp_ctx_t *ctx;
-    char *uuid;
+    xmpp_ctx_t * ctx;
+    char * uuid;
     int rc = 0;
 
     ctx = xmpp_ctx_new(NULL, NULL);

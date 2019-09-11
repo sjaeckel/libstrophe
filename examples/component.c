@@ -25,24 +25,23 @@ void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
                   const int error, xmpp_stream_error_t * const stream_error,
                   void * const userdata)
 {
-    xmpp_ctx_t *ctx = (xmpp_ctx_t *)userdata;
+    xmpp_ctx_t * ctx = (xmpp_ctx_t *)userdata;
 
     if (status == XMPP_CONN_CONNECT) {
         fprintf(stderr, "DEBUG: connected\n");
         xmpp_disconnect(conn);
-    }
-    else {
+    } else {
         fprintf(stderr, "DEBUG: disconnected\n");
         xmpp_stop(ctx);
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-    xmpp_ctx_t *ctx;
-    xmpp_conn_t *conn;
-    xmpp_log_t *log;
-    char *jid, *pass, *host, *port_err = NULL;
+    xmpp_ctx_t * ctx;
+    xmpp_conn_t * conn;
+    xmpp_log_t * log;
+    char * jid, *pass, *host, *port_err = NULL;
     unsigned short port = 0;
 
     /* take a jid and password on the command line */

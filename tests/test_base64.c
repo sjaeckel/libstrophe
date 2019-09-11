@@ -18,14 +18,15 @@
 #include "test.h"
 
 static const unsigned char test_2_raw[] =
-    {0x14, 0xfb, 0x9c, 0x03, 0xd9, 0x7e, 0x00};
-static const unsigned char test_4_raw[] =
-    {0xd6, 0x2f, 0x27, 0x49,  0x7e, 0xdd, 0xf3, 0xd5,
-     0x41, 0xbc, 0x1b, 0xe9,  0xdf, 0xe9, 0xb3, 0x08, 0x00};
+{0x14, 0xfb, 0x9c, 0x03, 0xd9, 0x7e, 0x00};
+static const unsigned char test_4_raw[] = {
+    0xd6, 0x2f, 0x27, 0x49,  0x7e, 0xdd, 0xf3, 0xd5,
+    0x41, 0xbc, 0x1b, 0xe9,  0xdf, 0xe9, 0xb3, 0x08, 0x00
+};
 
 static const struct {
-    char *raw;
-    char *base64;
+    char * raw;
+    char * base64;
 } tests[] = {
     {
         .raw = "How now brown cow?",
@@ -37,16 +38,16 @@ static const struct {
     },
     {
         .raw =
-            "From rest and sleep, which but thy pictures be, "
-            "Much pleasure; then from thee much more must flow, "
-            "And soonest our best men with thee do go, "
-            "Rest of their bones, and soul's delivery.",
+        "From rest and sleep, which but thy pictures be, "
+        "Much pleasure; then from thee much more must flow, "
+        "And soonest our best men with thee do go, "
+        "Rest of their bones, and soul's delivery.",
         .base64 =
-            "RnJvbSByZXN0IGFuZCBzbGVlcCwgd2hpY2ggYnV0IHRoeSBwaWN0dXJl"
-            "cyBiZSwgTXVjaCBwbGVhc3VyZTsgdGhlbiBmcm9tIHRoZWUgbXVjaCBt"
-            "b3JlIG11c3QgZmxvdywgQW5kIHNvb25lc3Qgb3VyIGJlc3QgbWVuIHdp"
-            "dGggdGhlZSBkbyBnbywgUmVzdCBvZiB0aGVpciBib25lcywgYW5kIHNv"
-            "dWwncyBkZWxpdmVyeS4=",
+        "RnJvbSByZXN0IGFuZCBzbGVlcCwgd2hpY2ggYnV0IHRoeSBwaWN0dXJl"
+        "cyBiZSwgTXVjaCBwbGVhc3VyZTsgdGhlbiBmcm9tIHRoZWUgbXVjaCBt"
+        "b3JlIG11c3QgZmxvdywgQW5kIHNvb25lc3Qgb3VyIGJlc3QgbWVuIHdp"
+        "dGggdGhlZSBkbyBnbywgUmVzdCBvZiB0aGVpciBib25lcywgYW5kIHNv"
+        "dWwncyBkZWxpdmVyeS4=",
     },
     {
         .raw = (char *)test_4_raw,
@@ -54,12 +55,12 @@ static const struct {
     },
     {
         .raw =
-            "realm=\"chesspark.com\",nonce=\"b243c0d663257a9149999cef2f83"
-            "a22116559e93\",qop=\"auth\",charset=utf-8,algorithm=md5-sess",
+        "realm=\"chesspark.com\",nonce=\"b243c0d663257a9149999cef2f83"
+        "a22116559e93\",qop=\"auth\",charset=utf-8,algorithm=md5-sess",
         .base64 =
-            "cmVhbG09ImNoZXNzcGFyay5jb20iLG5vbmNlPSJiMjQzYzBkNjYzMjU3"
-            "YTkxNDk5OTljZWYyZjgzYTIyMTE2NTU5ZTkzIixxb3A9ImF1dGgiLGNo"
-            "YXJzZXQ9dXRmLTgsYWxnb3JpdGhtPW1kNS1zZXNz",
+        "cmVhbG09ImNoZXNzcGFyay5jb20iLG5vbmNlPSJiMjQzYzBkNjYzMjU3"
+        "YTkxNDk5OTljZWYyZjgzYTIyMTE2NTU5ZTkzIixxb3A9ImF1dGgiLGNo"
+        "YXJzZXQ9dXRmLTgsYWxnb3JpdGhtPW1kNS1zZXNz",
     },
 
     /* RFC4648 test vectors */
@@ -128,12 +129,12 @@ static const unsigned char bin_data[] = {
     0x6d, 0x00,
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
-    xmpp_ctx_t *ctx;
-    unsigned char *udec;
-    char *dec;
-    char *enc;
+    xmpp_ctx_t * ctx;
+    unsigned char * udec;
+    char * dec;
+    char * enc;
     size_t len, i;
 
     printf("BASE64 tests.\n");

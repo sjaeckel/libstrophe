@@ -44,13 +44,13 @@
     } while(0)
 
 static void MD5Transform(uint32_t buf[4], const unsigned char inext[64],
-                         struct MD5Context *ctx);
+                         struct MD5Context * ctx);
 
 /*
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
  */
-void MD5Init(struct MD5Context *ctx)
+void MD5Init(struct MD5Context * ctx)
 {
     ctx->buf[0] = 0x67452301;
     ctx->buf[1] = 0xefcdab89;
@@ -67,7 +67,7 @@ void MD5Init(struct MD5Context *ctx)
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void MD5Update(struct MD5Context *ctx, unsigned char const *buf, uint32_t len)
+void MD5Update(struct MD5Context * ctx, unsigned char const * buf, uint32_t len)
 {
     uint32_t t;
 
@@ -83,7 +83,7 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, uint32_t len)
     /* Handle any leading odd-sized chunks */
 
     if (t) {
-        unsigned char *p = ctx->in + t;
+        unsigned char * p = ctx->in + t;
 
         t = 64 - t;
         if (len < t) {
@@ -113,10 +113,10 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, uint32_t len)
  * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
+void MD5Final(unsigned char digest[16], struct MD5Context * ctx)
 {
     unsigned count;
-    unsigned char *p;
+    unsigned char * p;
 
     /* Compute number of bytes mod 64 */
     count = (ctx->bits[0] >> 3) & 0x3F;
@@ -181,13 +181,13 @@ void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
  * the data and converts bytes into longwords for this routine.
  */
 static void MD5Transform(uint32_t buf[4], const unsigned char inext[64],
-                         struct MD5Context *ctx)
+                         struct MD5Context * ctx)
 {
     register uint32_t a, b, c, d, i;
     uint32_t in[16];
 
     for (i = 0; i < 16; i++)
-      in[i] = GET_32BIT_LSB_FIRST(inext + 4 * i);
+        in[i] = GET_32BIT_LSB_FIRST(inext + 4 * i);
 
     a = buf[0];
     b = buf[1];

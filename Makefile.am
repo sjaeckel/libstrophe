@@ -191,3 +191,8 @@ tests_test_string_SOURCES = tests/test_string.c tests/test.h
 tests_test_string_CFLAGS = $(STROPHE_FLAGS) -I$(top_srcdir)/src
 tests_test_string_LDADD = $(STROPHE_LIBS)
 tests_test_string_LDFLAGS = -static
+
+format:
+	@echo "   * run clang-format on all sources"
+	@dos2unix $(libstrophe_la_SOURCES) tests/*.c tests/*.h examples/*.c
+	@astyle --options=astylerc --formatted $(libstrophe_la_SOURCES) tests/*.c tests/*.h examples/*.c

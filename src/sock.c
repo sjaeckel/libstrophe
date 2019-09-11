@@ -73,7 +73,7 @@ sock_t sock_connect(const char * const host, const unsigned short port)
 {
     sock_t sock;
     char service[6];
-    struct addrinfo *res, *ainfo, hints;
+    struct addrinfo * res, *ainfo, hints;
     int err;
 
     xmpp_snprintf(service, 6, "%u", port);
@@ -222,8 +222,7 @@ int sock_connect_error(const sock_t sock)
 
     /* we don't actually care about the peer name, we're just checking if
      * we're connected or not */
-    if (getpeername(sock, &sa, &len) == 0)
-    {
+    if (getpeername(sock, &sa, &len) == 0) {
         return 0;
     }
 

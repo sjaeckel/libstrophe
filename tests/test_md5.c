@@ -21,8 +21,8 @@
  * Test vectors for MD5 (RFC1321).
  */
 static const struct {
-    const char *data;
-    const char *md5;
+    const char * data;
+    const char * md5;
 } tests[] = {
     {
         .data = "",
@@ -46,18 +46,18 @@ static const struct {
     },
     {
         .data = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcde"
-                "fghijklmnopqrstuvwxyz0123456789",
+        "fghijklmnopqrstuvwxyz0123456789",
         .md5 = "d174ab98d277d9f5a5611c2c9f419d9f",
     },
     {
         .data = "1234567890123456789012345678901"
-                "2345678901234567890123456789012"
-                "345678901234567890",
+        "2345678901234567890123456789012"
+        "345678901234567890",
         .md5 = "57edf4a22be3c955ac49da2e2107b67a",
     },
 };
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
     struct MD5Context ctx;
     unsigned char digest[16];

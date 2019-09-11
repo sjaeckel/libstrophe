@@ -133,9 +133,9 @@ static const unsigned char data6[] = {
 };
 
 static const struct {
-    const unsigned char *data;
+    const unsigned char * data;
     size_t len;
-    char *target;
+    char * target;
     unsigned short port;
     int target_nr;
 } tests[] = {
@@ -183,7 +183,7 @@ static const struct {
     },
 };
 
-static int srv_rr_list_len(resolver_srv_rr_t *list)
+static int srv_rr_list_len(resolver_srv_rr_t * list)
 {
     int nr;
 
@@ -192,13 +192,13 @@ static int srv_rr_list_len(resolver_srv_rr_t *list)
     return nr;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-    xmpp_ctx_t *ctx;
-    xmpp_rand_t *rand;
-    resolver_srv_rr_t *srv_rr_list;
-    char *domain;
-    unsigned char *buf;
+    xmpp_ctx_t * ctx;
+    xmpp_rand_t * rand;
+    resolver_srv_rr_t * srv_rr_list;
+    char * domain;
+    unsigned char * buf;
     unsigned short port;
     size_t i;
     int ret;

@@ -20,17 +20,17 @@ static const char jid2[] = "anyone@example.com/hullo";
 static const char jid3[] = "manic.porter@xyz.net/frob";
 static const char jid4[] = "domain.tld";
 
-static const char *_s(const char *s)
+static const char * _s(const char * s)
 {
     return s == NULL ? "<NULL>" : s;
 }
 
-int test_jid(xmpp_ctx_t *ctx)
+int test_jid(xmpp_ctx_t * ctx)
 {
-    char *bare;
-    char *node;
-    char *domain;
-    char *resource;
+    char * bare;
+    char * node;
+    char * domain;
+    char * resource;
 
     bare = xmpp_jid_bare(ctx, jid1);
     node = xmpp_jid_node(ctx, jid1);
@@ -95,9 +95,9 @@ int test_jid(xmpp_ctx_t *ctx)
     return 0;
 }
 
-int test_jid_new(xmpp_ctx_t *ctx)
+int test_jid_new(xmpp_ctx_t * ctx)
 {
-    char *jid;
+    char * jid;
 
     jid = xmpp_jid_new(ctx, "node", "domain", "resource");
     printf("new jid: '%s'\n", jid);
@@ -112,9 +112,9 @@ int test_jid_new(xmpp_ctx_t *ctx)
     return 0;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
-    xmpp_ctx_t *ctx;
+    xmpp_ctx_t * ctx;
     int ret;
 
     printf("allocating context... ");

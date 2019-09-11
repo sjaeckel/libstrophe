@@ -33,15 +33,15 @@
 #define INNER_TEXT_PADDING 2
 
 struct _parser_t {
-    xmpp_ctx_t *ctx;
+    xmpp_ctx_t * ctx;
     XML_Parser expat;
     parser_start_callback startcb;
     parser_end_callback endcb;
     parser_stanza_callback stanzacb;
-    void *userdata;
+    void * userdata;
     int depth;
-    xmpp_stanza_t *stanza;
-    char* inner_text;
+    xmpp_stanza_t * stanza;
+    char * inner_text;
     /* number of allocated bytes */
     int inner_text_size;
     /* excluding terminal '\0' */
@@ -50,10 +50,10 @@ struct _parser_t {
 
 /* return allocated string with the name from a delimited
  * namespace/name string */
-static char *_xml_name(xmpp_ctx_t *ctx, const char *nsname)
+static char * _xml_name(xmpp_ctx_t * ctx, const char * nsname)
 {
-    char *result = NULL;
-    const char *c;
+    char * result = NULL;
+    const char * c;
     size_t len;
 
     c = strchr(nsname, NAMESPACE_SEP);
@@ -63,34 +63,34 @@ static char *_xml_name(xmpp_ctx_t *ctx, const char *nsname)
     len = strlen(c);
     result = xmpp_alloc(ctx, len + 1);
     if (result != NULL) {
-	memcpy(result, c, len);
-	result[len] = '\0';
+        memcpy(result, c, len);
+        result[len] = '\0';
     }
 
     return result;
 }
 
 /* return allocated string with the namespace from a delimited string */
-static char *_xml_namespace(xmpp_ctx_t *ctx, const char *nsname)
+static char * _xml_namespace(xmpp_ctx_t * ctx, const char * nsname)
 {
-    char *result = NULL;
-    const char *c;
+    char * result = NULL;
+    const char * c;
 
     c = strchr(nsname, NAMESPACE_SEP);
     if (c != NULL) {
-	result = xmpp_alloc(ctx, (c-nsname) + 1);
-	if (result != NULL) {
-	    memcpy(result, nsname, (c-nsname));
-	    result[c-nsname] = '\0';
-	}
+        result = xmpp_alloc(ctx, (c-nsname) + 1);
+        if (result != NULL) {
+            memcpy(result, nsname, (c-nsname));
+            result[c-nsname] = '\0';
+        }
     }
 
     return result;
 }
 
-static void _set_attributes(xmpp_stanza_t *stanza, const XML_Char **attrs)
+static void _set_attributes(xmpp_stanza_t * stanza, const XML_Char ** attrs)
 {
-    char *attr;
+    char * attr;
     int i;
 
     if (!attrs) return;
@@ -103,9 +103,9 @@ static void _set_attributes(xmpp_stanza_t *stanza, const XML_Char **attrs)
     }
 }
 
-static void complete_inner_text(parser_t *parser)
+static void complete_inner_text(parser_t * parser)
 {
-    xmpp_stanza_t *stanza;
+    xmpp_stanza_t * stanza;
 
     if (parser->inner_text) {
         /* create and populate stanza */
@@ -123,13 +123,13 @@ static void complete_inner_text(parser_t *parser)
     }
 }
 
-static void _start_element(void *userdata,
-                           const XML_Char *nsname,
-                           const XML_Char **attrs)
+static void _start_element(void * userdata,
+                           const XML_Char * nsname,
+                           const XML_Char ** attrs)
 {
-    parser_t *parser = (parser_t *)userdata;
-    xmpp_stanza_t *child;
-    char *ns, *name;
+    parser_t * parser = (parser_t *)userdata;
+    xmpp_stanza_t * child;
+    char * ns, *name;
 
     ns = _xml_namespace(parser->ctx, nsname);
     name = _xml_name(parser->ctx, nsname);
@@ -170,9 +170,9 @@ static void _start_element(void *userdata,
     parser->depth++;
 }
 
-static void _end_element(void *userdata, const XML_Char *name)
+static void _end_element(void * userdata, const XML_Char * name)
 {
-    parser_t *parser = (parser_t *)userdata;
+    parser_t * parser = (parser_t *)userdata;
 
     parser->depth--;
 
@@ -195,10 +195,10 @@ static void _end_element(void *userdata, const XML_Char *name)
     }
 }
 
-static void _characters(void *userdata, const XML_Char *s, int len)
+static void _characters(void * userdata, const XML_Char * s, int len)
 {
-    parser_t *parser = (parser_t *)userdata;
-    char *p;
+    parser_t * parser = (parser_t *)userdata;
+    char * p;
 
     if (parser->depth < 2) return;
 
@@ -223,13 +223,13 @@ static void _characters(void *userdata, const XML_Char *s, int len)
     strncat(parser->inner_text, s, len);
 }
 
-parser_t *parser_new(xmpp_ctx_t *ctx,
-                     parser_start_callback startcb,
-                     parser_end_callback endcb,
-                     parser_stanza_callback stanzacb,
-                     void *userdata)
+parser_t * parser_new(xmpp_ctx_t * ctx,
+                      parser_start_callback startcb,
+                      parser_end_callback endcb,
+                      parser_stanza_callback stanzacb,
+                      void * userdata)
 {
-    parser_t *parser;
+    parser_t * parser;
 
     parser = xmpp_alloc(ctx, sizeof(parser_t));
     if (parser != NULL) {
@@ -251,19 +251,19 @@ parser_t *parser_new(xmpp_ctx_t *ctx,
     return parser;
 }
 
-char* parser_attr_name(xmpp_ctx_t *ctx, char *nsname)
+char * parser_attr_name(xmpp_ctx_t * ctx, char * nsname)
 {
     return _xml_name(ctx, nsname);
 }
 
 /* free a parser */
-void parser_free(parser_t *parser)
+void parser_free(parser_t * parser)
 {
     if (parser->expat)
         XML_ParserFree(parser->expat);
 
     if (parser->inner_text) {
-        xmpp_free (parser->ctx, parser->inner_text);
+        xmpp_free(parser->ctx, parser->inner_text);
         parser->inner_text = NULL;
     }
 
@@ -271,13 +271,13 @@ void parser_free(parser_t *parser)
 }
 
 /* shuts down and restarts XML parser.  true on success */
-int parser_reset(parser_t *parser)
+int parser_reset(parser_t * parser)
 {
     if (parser->expat)
-	XML_ParserFree(parser->expat);
+        XML_ParserFree(parser->expat);
 
     if (parser->stanza)
-	xmpp_stanza_release(parser->stanza);
+        xmpp_stanza_release(parser->stanza);
 
     parser->expat = XML_ParserCreateNS(NULL, NAMESPACE_SEP);
     if (!parser->expat) return 0;
@@ -286,7 +286,7 @@ int parser_reset(parser_t *parser)
     parser->stanza = NULL;
 
     if (parser->inner_text) {
-        xmpp_free (parser->ctx, parser->inner_text);
+        xmpp_free(parser->ctx, parser->inner_text);
         parser->inner_text = NULL;
     }
 
@@ -297,7 +297,7 @@ int parser_reset(parser_t *parser)
     return 1;
 }
 
-int parser_feed(parser_t *parser, char *chunk, int len)
+int parser_feed(parser_t * parser, char * chunk, int len)
 {
     return XML_Parse(parser->expat, chunk, len, 0);
 }

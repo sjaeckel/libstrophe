@@ -64,15 +64,15 @@
  *
  *  @ingroup EventLoop
  */
-void xmpp_run_once(xmpp_ctx_t *ctx, const unsigned long timeout)
+void xmpp_run_once(xmpp_ctx_t * ctx, const unsigned long timeout)
 {
-    xmpp_connlist_t *connitem;
-    xmpp_conn_t *conn;
+    xmpp_connlist_t * connitem;
+    xmpp_conn_t * conn;
     fd_set rfds, wfds;
     sock_t max = 0;
     int ret;
     struct timeval tv;
-    xmpp_send_queue_t *sq, *tsq;
+    xmpp_send_queue_t * sq, *tsq;
     int towrite;
     char buf[4096];
     uint64_t next;
@@ -191,7 +191,7 @@ void xmpp_run_once(xmpp_ctx_t *ctx, const unsigned long timeout)
                 FD_SET(conn->sock, &wfds);
             break;
         case XMPP_STATE_DISCONNECTED:
-            /* do nothing */
+        /* do nothing */
         default:
             break;
         }
@@ -283,7 +283,7 @@ void xmpp_run_once(xmpp_ctx_t *ctx, const unsigned long timeout)
 
             break;
         case XMPP_STATE_DISCONNECTED:
-            /* do nothing */
+        /* do nothing */
         default:
             break;
         }
@@ -303,7 +303,7 @@ void xmpp_run_once(xmpp_ctx_t *ctx, const unsigned long timeout)
  *
  *  @ingroup EventLoop
  */
-void xmpp_run(xmpp_ctx_t *ctx)
+void xmpp_run(xmpp_ctx_t * ctx)
 {
     if (ctx->loop_status != XMPP_LOOP_NOTSTARTED) return;
 
@@ -326,7 +326,7 @@ void xmpp_run(xmpp_ctx_t *ctx)
  *
  *  @ingroup EventLoop
  */
-void xmpp_stop(xmpp_ctx_t *ctx)
+void xmpp_stop(xmpp_ctx_t * ctx)
 {
     xmpp_debug(ctx, "event", "Stopping event loop.");
 

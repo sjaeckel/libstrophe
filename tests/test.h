@@ -63,7 +63,7 @@ do {                                           \
     }                                          \
 } while (0)
 
-void test_hex_to_bin(const char *hex, uint8_t *bin, size_t *bin_len);
-const char *test_bin_to_hex(const uint8_t *bin, size_t len);
+void test_hex_to_bin(const char * hex, uint8_t * bin, size_t * bin_len);
+const char * test_bin_to_hex(const uint8_t * bin, size_t len);
 
 #endif /* __LIBSTROPHE_TEST_H__ */

@@ -14,10 +14,10 @@ Still 100% Public Domain
 
 Corrected a problem which generated improper hash values on 16 bit machines
 Routine SHA1Update changed from
-	void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int
+    void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int
 len)
 to
-	void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned
+    void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned
 long len)
 
 The 'len' parameter was declared an int which works fine on 32 bit machines.
@@ -126,14 +126,14 @@ static void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
         uint8_t c[64];
         uint32_t l[16];
     } CHAR64LONG16;
-    CHAR64LONG16* block;
+    CHAR64LONG16 * block;
 
 #ifdef SHA1HANDSOFF
     static uint8_t workspace[64];
-    block = (CHAR64LONG16*)workspace;
+    block = (CHAR64LONG16 *)workspace;
     memcpy(block, buffer, 64);
 #else
-    block = (CHAR64LONG16*)buffer;
+    block = (CHAR64LONG16 *)buffer;
 #endif
 
     /* Copy context->state[] to working vars */
@@ -143,6 +143,7 @@ static void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
     d = state[3];
     e = state[4];
 
+    /* *INDENT-OFF* */
     /* 4 rounds of 20 operations each. Loop unrolled. */
     R0(a,b,c,d,e, 0); R0(e,a,b,c,d, 1); R0(d,e,a,b,c, 2); R0(c,d,e,a,b, 3);
     R0(b,c,d,e,a, 4); R0(a,b,c,d,e, 5); R0(e,a,b,c,d, 6); R0(d,e,a,b,c, 7);
@@ -164,6 +165,7 @@ static void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
     R4(c,d,e,a,b,68); R4(b,c,d,e,a,69); R4(a,b,c,d,e,70); R4(e,a,b,c,d,71);
     R4(d,e,a,b,c,72); R4(c,d,e,a,b,73); R4(b,c,d,e,a,74); R4(a,b,c,d,e,75);
     R4(e,a,b,c,d,76); R4(d,e,a,b,c,77); R4(c,d,e,a,b,78); R4(b,c,d,e,a,79);
+    /* *INDENT-ON* */
 
     /* Add the working vars back into context.state[] */
     state[0] += a;
@@ -178,7 +180,7 @@ static void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
 
 
 /* SHA1Init - Initialize new context */
-void crypto_SHA1_Init(SHA1_CTX* context)
+void crypto_SHA1_Init(SHA1_CTX * context)
 {
     /* SHA1 initialization constants */
     context->state[0] = 0x67452301;
@@ -191,7 +193,7 @@ void crypto_SHA1_Init(SHA1_CTX* context)
 
 
 /* Run your data through this. */
-void crypto_SHA1_Update(SHA1_CTX* context, const uint8_t* data,
+void crypto_SHA1_Update(SHA1_CTX * context, const uint8_t * data,
                         const size_t len)
 {
     size_t i, j;
@@ -202,25 +204,24 @@ void crypto_SHA1_Update(SHA1_CTX* context, const uint8_t* data,
     if ((j + len) > 63) {
         memcpy(&context->buffer[j], data, (i = 64-j));
         SHA1_Transform(context->state, context->buffer);
-        for ( ; i + 63 < len; i += 64) {
+        for (; i + 63 < len; i += 64) {
             SHA1_Transform(context->state, data + i);
         }
         j = 0;
-    }
-    else i = 0;
+    } else i = 0;
     memcpy(&context->buffer[j], &data[i], len - i);
 }
 
 
 /* Add padding and return the message digest. */
-void crypto_SHA1_Final(SHA1_CTX* context, uint8_t* digest)
+void crypto_SHA1_Final(SHA1_CTX * context, uint8_t * digest)
 {
     uint32_t i;
     uint8_t  finalcount[8];
 
     for (i = 0; i < 8; i++) {
         finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)]
-         >> ((3-(i & 3)) * 8) ) & 255);  /* Endian independent */
+                                         >> ((3-(i & 3)) * 8)) & 255);   /* Endian independent */
     }
     crypto_SHA1_Update(context, (uint8_t *)"\200", 1);
     while ((context->count[0] & 504) != 448) {
@@ -229,7 +230,7 @@ void crypto_SHA1_Final(SHA1_CTX* context, uint8_t* digest)
     crypto_SHA1_Update(context, finalcount, 8);  /* Should cause a SHA1_Transform() */
     for (i = 0; i < SHA1_DIGEST_SIZE; i++) {
         digest[i] = (uint8_t)
-         ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
+                    ((context->state[i>>2] >> ((3-(i & 3)) * 8)) & 255);
     }
 
     /* Wipe variables */
@@ -237,7 +238,7 @@ void crypto_SHA1_Final(SHA1_CTX* context, uint8_t* digest)
     memset(context->buffer, 0, 64);
     memset(context->state, 0, 20);
     memset(context->count, 0, 8);
-    memset(finalcount, 0, 8);	/* SWR */
+    memset(finalcount, 0, 8);   /* SWR */
 
 #ifdef SHA1HANDSOFF  /* make SHA1Transform overwrite its own static vars */
     SHA1_Transform(context->state, context->buffer);
@@ -245,7 +246,7 @@ void crypto_SHA1_Final(SHA1_CTX* context, uint8_t* digest)
 }
 
 
-void crypto_SHA1(const uint8_t* data, size_t len, uint8_t* digest)
+void crypto_SHA1(const uint8_t * data, size_t len, uint8_t * digest)
 {
     SHA1_CTX ctx;
     crypto_SHA1_Init(&ctx);

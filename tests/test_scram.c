@@ -25,12 +25,12 @@
  * Test vectors for derivation function (RFC6070).
  */
 static const struct {
-    char *P;      /* text */
-    char *S;      /* salt */
+    char * P;     /* text */
+    char * S;     /* salt */
     size_t P_len;
     size_t S_len;
     uint32_t c;   /* i */
-    char *DK;     /* resulting digest */
+    char * DK;    /* resulting digest */
 } df_vectors[] = {
     {
         .P = "password",
@@ -61,7 +61,7 @@ static const struct {
 static void test_df(void)
 {
     size_t i;
-    const char *s;
+    const char * s;
     uint8_t dk[SHA1_DIGEST_SIZE];
 
     printf("Derivation function tests (SCRAM_SHA1_Hi).\n");
@@ -78,24 +78,24 @@ static void test_df(void)
 
 /* RFC6120 */
 static const struct {
-    char *password;
-    char *initial;
-    char *challenge;
-    char *response;
-    char *salt;
+    char * password;
+    char * initial;
+    char * challenge;
+    char * response;
+    char * salt;
     uint32_t i;
-    char *sign;
+    char * sign;
 } scram_vectors[] = {
     {
         .password = "r0m30myr0m30",
         .initial = "n,,n=juliet,r=oMsTAAwAAAAMAAAANP0TAAAAAABPU0AA",
         .challenge = "r=oMsTAAwAAAAMAAAANP0TAAAAAABPU0AAe124695b-69a9-4de6-9c30"
-                     "-b51b3808c59e,s=NjhkYTM0MDgtNGY0Zi00NjdmLTkxMmUtNDlmNTNmN"
-                     "DNkMDMz,i=4096",
+        "-b51b3808c59e,s=NjhkYTM0MDgtNGY0Zi00NjdmLTkxMmUtNDlmNTNmN"
+        "DNkMDMz,i=4096",
         .response = "c=biws,r=oMsTAAwAAAAMAAAANP0TAAAAAABPU0AAe124695b-69a9-4de"
-                    "6-9c30-b51b3808c59e",
+        "6-9c30-b51b3808c59e",
         .salt = "36386461333430382d346634662d34363766"
-                "2d393132652d343966353366343364303333",
+        "2d393132652d343966353366343364303333",
         .i = 4096,
         .sign = "500e7bb4cfd2be90130641f6157b345835ef258c",
     },
@@ -108,7 +108,7 @@ static void test_scram(void)
     uint8_t salt[256];
     size_t salt_len;
     char auth[512];
-    const char *s;
+    const char * s;
     size_t i;
     int j;
 
@@ -133,7 +133,7 @@ static void test_scram(void)
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
     test_df();
     test_scram();

@@ -23,7 +23,7 @@ void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
                   const int error, xmpp_stream_error_t * const stream_error,
                   void * const userdata)
 {
-    xmpp_ctx_t *ctx = (xmpp_ctx_t *)userdata;
+    xmpp_ctx_t * ctx = (xmpp_ctx_t *)userdata;
     int secured;
 
     if (status == XMPP_CONN_CONNECT) {
@@ -32,19 +32,18 @@ void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
         fprintf(stderr, "DEBUG: connection is %s.\n",
                 secured ? "secured" : "NOT secured");
         xmpp_disconnect(conn);
-    }
-    else {
+    } else {
         fprintf(stderr, "DEBUG: disconnected\n");
         xmpp_stop(ctx);
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-    xmpp_ctx_t *ctx;
-    xmpp_conn_t *conn;
-    xmpp_log_t *log;
-    char *jid, *pass, *host = NULL;
+    xmpp_ctx_t * ctx;
+    xmpp_conn_t * conn;
+    xmpp_log_t * log;
+    char * jid, *pass, *host = NULL;
     long flags = 0;
     int tcp_keepalive = 0;
     int i;
@@ -64,13 +63,13 @@ int main(int argc, char **argv)
     }
     if ((argc - i) < 2 || (argc - i) > 3) {
         fprintf(stderr, "Usage: basic [options] <jid> <pass> [<host>]\n\n"
-                        "Options:\n"
-                        "  --disable-tls        Disable TLS.\n"
-                        "  --mandatory-tls      Deny plaintext connection.\n"
-                        "  --legacy-ssl         Use old style SSL.\n"
-                        "  --tcp-keepalive      Configure TCP keepalive.\n\n"
-                        "Note: --disable-tls conflicts with --mandatory-tls or "
-                              "--legacy-ssl\n");
+                "Options:\n"
+                "  --disable-tls        Disable TLS.\n"
+                "  --mandatory-tls      Deny plaintext connection.\n"
+                "  --legacy-ssl         Use old style SSL.\n"
+                "  --tcp-keepalive      Configure TCP keepalive.\n\n"
+                "Note: --disable-tls conflicts with --mandatory-tls or "
+                "--legacy-ssl\n");
         return 1;
     }
 

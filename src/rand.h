@@ -27,28 +27,28 @@ typedef struct _xmpp_rand_t xmpp_rand_t;
  *
  *  @ingroup Random
  */
-xmpp_rand_t *xmpp_rand_new(xmpp_ctx_t *ctx);
+xmpp_rand_t * xmpp_rand_new(xmpp_ctx_t * ctx);
 /** Destroy an xmpp_rand_t object.
  *
  *  @param ctx A Strophe context object
  *
  *  @ingroup Random
  */
-void xmpp_rand_free(xmpp_ctx_t *ctx, xmpp_rand_t *rand);
+void xmpp_rand_free(xmpp_ctx_t * ctx, xmpp_rand_t * rand);
 
 /** Generate random integer.
  *  Analogue of rand(3).
  *
  *  @ingroup Random
  */
-int xmpp_rand(xmpp_rand_t *rand);
+int xmpp_rand(xmpp_rand_t * rand);
 
 /** Generate random bytes.
  *  Generates len bytes and stores them to the output buffer.
  *
  *  @ingroup Random
  */
-void xmpp_rand_bytes(xmpp_rand_t *rand, unsigned char *output, size_t len);
+void xmpp_rand_bytes(xmpp_rand_t * rand, unsigned char * output, size_t len);
 
 /** Generate a nonce that is printable randomized string.
  *  This function doesn't allocate memory and doesn't fail.
@@ -60,6 +60,6 @@ void xmpp_rand_bytes(xmpp_rand_t *rand, unsigned char *output, size_t len);
  *
  *  @ingroup Random
  */
-void xmpp_rand_nonce(xmpp_rand_t *rand, char *output, size_t len);
+void xmpp_rand_nonce(xmpp_rand_t * rand, char * output, size_t len);
 
 #endif /* __LIBSTROPHE_RAND_H__ */

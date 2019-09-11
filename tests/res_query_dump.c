@@ -37,13 +37,13 @@
 
 #define STEP 10
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
     unsigned char buf[65536];
     char fulldomain[2048];
-    char *service = "xmpp-client";
-    char *proto = "tcp";
-    char *domain = NULL;
+    char * service = "xmpp-client";
+    char * proto = "tcp";
+    char * domain = NULL;
     int len;
     int i;
     int j;

@@ -32,9 +32,9 @@
 
 static int test_strtok_r(void)
 {
-    const char *test = "-abc-=-def--";
-    char *s1, *s2, *sub1, *sub2;
-    char *sp1, *sp2;
+    const char * test = "-abc-=-def--";
+    char * s1, *s2, *sub1, *sub2;
+    char * sp1, *sp2;
 
     s1 = strdup(test);
     s2 = strdup(test);
@@ -65,9 +65,9 @@ static int test_strtok_r(void)
     return 0;
 }
 
-static int test_strdup_one(xmpp_ctx_t *ctx, const char *s)
+static int test_strdup_one(xmpp_ctx_t * ctx, const char * s)
 {
-    char *s1, *s2;
+    char * s1, *s2;
     int rc = 0;
 
     s1 = strdup(s);
@@ -88,11 +88,11 @@ static int test_strdup_one(xmpp_ctx_t *ctx, const char *s)
 
 static int test_strdup(void)
 {
-    xmpp_ctx_t *ctx;
+    xmpp_ctx_t * ctx;
     size_t i;
     int rc = 0;
 
-    static const char *tests[] = { "", "\0", "test", "s p a c e", "\n\r" };
+    static const char * tests[] = { "", "\0", "test", "s p a c e", "\n\r" };
 
     ctx = xmpp_ctx_new(NULL, NULL);
     assert(ctx != NULL);

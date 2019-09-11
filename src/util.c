@@ -38,10 +38,10 @@
  *
  *  @return a new allocates string with the same data as s or NULL on error
  */
-char *xmpp_strdup(const xmpp_ctx_t * const ctx, const char * const s)
+char * xmpp_strdup(const xmpp_ctx_t * const ctx, const char * const s)
 {
     size_t len;
-    char *copy;
+    char * copy;
 
     len = strlen(s);
     copy = xmpp_alloc(ctx, len + 1);
@@ -60,7 +60,7 @@ char *xmpp_strdup(const xmpp_ctx_t * const ctx, const char * const s)
  *  For example, visual studio older than 2005 doesn't provide strtok_r()
  *  nor strtok_s().
  */
-char *xmpp_strtok_r(char *s, const char *delim, char **saveptr)
+char * xmpp_strtok_r(char * s, const char * delim, char ** saveptr)
 {
     size_t len;
 

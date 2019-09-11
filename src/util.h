@@ -1,7 +1,7 @@
 /* util.h
 ** strophe XMPP client library -- various utility functions
 **
-** Copyright (C) 2005-2009 Collecta, Inc. 
+** Copyright (C) 2005-2009 Collecta, Inc.
 **
 **  This software is provided AS-IS with no warranty, either express
 **  or implied.
@@ -22,7 +22,7 @@
 #define xmpp_min(x, y) ((x) < (y) ? (x) : (y))
 
 /* string functions */
-char *xmpp_strtok_r(char *s, const char *delim, char **saveptr);
+char * xmpp_strtok_r(char * s, const char * delim, char ** saveptr);
 
 /* timing functions */
 uint64_t time_stamp(void);

@@ -25,9 +25,9 @@
 
 int version_handler(xmpp_conn_t * const conn, xmpp_stanza_t * const stanza, void * const userdata)
 {
-    xmpp_stanza_t *reply, *query, *name, *version, *text;
-    const char *ns;
-    xmpp_ctx_t *ctx = (xmpp_ctx_t*)userdata;
+    xmpp_stanza_t * reply, *query, *name, *version, *text;
+    const char * ns;
+    xmpp_ctx_t * ctx = (xmpp_ctx_t *)userdata;
 
     printf("Received version request from %s\n", xmpp_stanza_get_from(stanza));
 
@@ -72,10 +72,10 @@ int version_handler(xmpp_conn_t * const conn, xmpp_stanza_t * const stanza, void
 
 int message_handler(xmpp_conn_t * const conn, xmpp_stanza_t * const stanza, void * const userdata)
 {
-    xmpp_ctx_t *ctx = (xmpp_ctx_t*)userdata;
-    xmpp_stanza_t *body, *reply;
-    const char *type;
-    char *intext, *replytext;
+    xmpp_ctx_t * ctx = (xmpp_ctx_t *)userdata;
+    xmpp_stanza_t * body, *reply;
+    const char * type;
+    char * intext, *replytext;
     int quit = 0;
 
     body = xmpp_stanza_get_child_by_name(stanza, "body");
@@ -119,10 +119,10 @@ void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
                   const int error, xmpp_stream_error_t * const stream_error,
                   void * const userdata)
 {
-    xmpp_ctx_t *ctx = (xmpp_ctx_t *)userdata;
+    xmpp_ctx_t * ctx = (xmpp_ctx_t *)userdata;
 
     if (status == XMPP_CONN_CONNECT) {
-        xmpp_stanza_t* pres;
+        xmpp_stanza_t * pres;
         fprintf(stderr, "DEBUG: connected\n");
         xmpp_handler_add(conn, version_handler, "jabber:iq:version", "iq", NULL, ctx);
         xmpp_handler_add(conn, message_handler, NULL, "message", NULL, ctx);
@@ -131,19 +131,18 @@ void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
         pres = xmpp_presence_new(ctx);
         xmpp_send(conn, pres);
         xmpp_stanza_release(pres);
-    }
-    else {
+    } else {
         fprintf(stderr, "DEBUG: disconnected\n");
         xmpp_stop(ctx);
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-    xmpp_ctx_t *ctx;
-    xmpp_conn_t *conn;
-    xmpp_log_t *log;
-    char *jid, *pass;
+    xmpp_ctx_t * ctx;
+    xmpp_conn_t * conn;
+    xmpp_log_t * log;
+    char * jid, *pass;
 
     /* take a jid and password on the command line */
     if (argc != 3) {
