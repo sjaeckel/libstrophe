@@ -152,6 +152,7 @@ struct _xmpp_conn_t {
     tls_t *tls;
     int tls_support;
     int tls_disabled;
+    char *tls_cert_path;
     int tls_mandatory;
     int tls_legacy_ssl;
     int tls_trust;
@@ -159,6 +160,7 @@ struct _xmpp_conn_t {
     int sasl_support; /* if true, field is a bitfield of supported
                          mechanisms */
     int secured;      /* set when stream is secured with TLS */
+    xmpp_certfail_handler certfail_handler;
 
     /* if server returns <bind/> or <session/> we must do them */
     int bind_required;

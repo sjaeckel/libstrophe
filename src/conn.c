@@ -25,6 +25,7 @@
 #include "common.h"
 #include "util.h"
 #include "parser.h"
+#include "tls.h"
 #include "resolver.h"
 
 #ifndef DEFAULT_SEND_QUEUE_MAX
@@ -128,6 +129,7 @@ xmpp_conn_t *xmpp_conn_new(xmpp_ctx_t *const ctx)
         conn->stream_id = NULL;
         conn->bound_jid = NULL;
 
+        conn->tls_cert_path = NULL;
         conn->is_raw = 0;
         conn->tls_support = 0;
         conn->tls_disabled = 0;
@@ -324,6 +326,8 @@ int xmpp_conn_release(xmpp_conn_t *const conn)
             xmpp_free(ctx, conn->pass);
         if (conn->lang)
             xmpp_free(ctx, conn->lang);
+        if (conn->tls_cert_path)
+            xmpp_free(ctx, conn->tls_cert_path);
         xmpp_free(ctx, conn);
         released = 1;
     }
@@ -996,6 +1000,17 @@ void xmpp_conn_disable_tls(xmpp_conn_t *const conn)
     (void)xmpp_conn_set_flags(conn, flags);
 }
 
+void xmpp_conn_set_certfail_handler(xmpp_conn_t *const conn,
+                                    xmpp_certfail_handler hndl)
+{
+    conn->certfail_handler = hndl;
+}
+
+void xmpp_conn_tlscert_path(xmpp_conn_t *const conn, const char *path)
+{
+    conn->tls_cert_path = xmpp_strdup(conn->ctx, path);
+}
+
 /** Return whether TLS session is established or not.
  *
  *  @return TRUE if TLS session is established and FALSE otherwise
@@ -1005,6 +1020,69 @@ void xmpp_conn_disable_tls(xmpp_conn_t *const conn)
 int xmpp_conn_is_secured(xmpp_conn_t *const conn)
 {
     return conn->secured && !conn->tls_failed && conn->tls != NULL ? 1 : 0;
+}
+
+xmpp_tlscert_t *xmpp_conn_tls_peer_cert(xmpp_conn_t *const conn)
+{
+    return tls_peer_cert(conn);
+}
+
+int xmpp_conn_tlscert_version(struct _tlscert_t *cert)
+{
+    return cert->version;
+}
+
+const char *xmpp_conn_tlscert_serialnumber(struct _tlscert_t *cert)
+{
+    return cert->serialnumber;
+}
+
+const char *xmpp_conn_tlscert_subjectname(struct _tlscert_t *cert)
+{
+    return cert->subjectname;
+}
+
+const char *xmpp_conn_tlscert_issuername(struct _tlscert_t *cert)
+{
+    return cert->issuername;
+}
+
+const char *xmpp_conn_tlscert_fingerprint(struct _tlscert_t *cert)
+{
+    return cert->fingerprint;
+}
+
+const char *xmpp_conn_tlscert_notbefore(struct _tlscert_t *cert)
+{
+    return cert->notbefore;
+}
+
+const char *xmpp_conn_tlscert_notafter(struct _tlscert_t *cert)
+{
+    return cert->notafter;
+}
+
+const char *xmpp_conn_tlscert_signature_algorithm(struct _tlscert_t *cert)
+{
+    return cert->sigalg;
+}
+
+const char *xmpp_conn_tlscert_key_algorithm(struct _tlscert_t *cert)
+{
+    return cert->keyalg;
+}
+
+void xmpp_conn_free_tlscert(xmpp_ctx_t *ctx, struct _tlscert_t *cert)
+{
+    xmpp_free(ctx, cert->fingerprint);
+    xmpp_free(ctx, cert->serialnumber);
+    xmpp_free(ctx, cert->subjectname);
+    xmpp_free(ctx, cert->issuername);
+    xmpp_free(ctx, cert->notbefore);
+    xmpp_free(ctx, cert->notafter);
+    xmpp_free(ctx, cert->keyalg);
+    xmpp_free(ctx, cert->sigalg);
+    xmpp_free(ctx, cert);
 }
 
 /* timed handler for cleanup if normal disconnect procedure takes too long */
