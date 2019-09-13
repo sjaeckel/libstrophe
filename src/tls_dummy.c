@@ -44,6 +44,12 @@ void tls_free(tls_t *tls)
     return;
 }
 
+xmpp_tlscert_t *tls_peer_cert(xmpp_conn_t *conn)
+{
+    /* always fail */
+    return NULL;
+}
+
 int tls_set_credentials(tls_t *tls, const char *cafilename)
 {
     return -1;

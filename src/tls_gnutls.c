@@ -14,6 +14,7 @@
  */
 
 #include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
 
 #include "common.h"
 #include "tls.h"
@@ -72,6 +73,115 @@ void tls_free(tls_t *tls)
     gnutls_deinit(tls->session);
     gnutls_certificate_free_credentials(tls->cred);
     xmpp_free(tls->ctx, tls);
+}
+
+
+/* The following code is based on print_x509_certificate_info() from the gnutls examples.
+ * It explicitly states"This example code is placed in the public domain."
+ */
+static const char *bin2hex(const void *bin, size_t bin_size)
+{
+        static char printable[110];
+        const unsigned char *_bin = bin;
+        char *print;
+        size_t i;
+
+        if (bin_size > 50)
+                bin_size = 50;
+
+        print = printable;
+        for (i = 0; i < bin_size; i++) {
+                sprintf(print, "%.2x ", _bin[i]);
+                print += 2;
+        }
+
+        return printable;
+}
+
+static struct _tlscert_t *get_certificate_info(xmpp_ctx_t ctx, gnutls_session_t session)
+{
+    char buf[256];
+    size_t size;
+    unsigned int algo, bits;
+    time_t expiration_time, activation_time;
+    const gnutls_datum_t *cert_list;
+    unsigned int cert_list_size = 0;
+    gnutls_x509_crt_t cert;
+    gnutls_datum_t cinfo;
+
+    /* This function only works for X.509 certificates.
+     */
+    if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509)
+        return NULL;
+
+    cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
+
+    if (cert_list_size > 0) {
+        struct _tlscert_t *tlscert = xmpp_alloc(ctx, sizeof(*tlscert));
+        memset(tlscert, 0, sizeof(*tlscert));
+
+        /* we only print information about the first certificate.
+         */
+        if(gnutls_x509_crt_init(&cert)) goto LBL_ERR;
+
+        if(gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER)) goto LBL_ERR;
+
+        /* If you want to extract fields manually for some other reason,
+         below are popular example calls. */
+
+        expiration_time = gnutls_x509_crt_get_expiration_time(cert);
+        activation_time = gnutls_x509_crt_get_activation_time(cert);
+
+        tlscert->notbefore = strdup(ctime(&activation_time));
+        tlscert->notafter = strdup(ctime(&expiration_time));
+
+        /* Print the serial number of the certificate.
+         */
+        size = sizeof(buf);
+        if(gnutls_x509_crt_get_serial(cert, buf, &size)) goto LBL_ERR;
+
+        tlscert->serialnumber = strdup(bin2hex(buf, size));
+
+        /* Extract some of the public key algorithm's parameters
+         */
+        algo = gnutls_x509_crt_get_pk_algorithm(cert, &bits);
+
+        tlscert->keyalg = strdup(gnutls_pk_algorithm_get_name(algo));
+
+        /* Get the version of the X.509
+         * certificate.
+         */
+        tlscert->version = gnutls_x509_crt_get_version(cert);
+
+        size = sizeof(buf);
+        if(gnutls_x509_crt_get_dn(cert, buf, &size)) goto LBL_ERR;
+        tlscert->subjectname = strdup(buf);
+
+        size = sizeof(buf);
+        if(gnutls_x509_crt_get_issuer_dn(cert, buf, &size)) goto LBL_ERR;
+        tlscert->issuername = strdup(buf);
+
+        size = sizeof(buf);
+        if(gnutls_x509_crt_get_fingerprint(cert, GNUTLS_DIG_SHA1, buf, &size)) goto LBL_ERR;
+        tlscert->fingerprint = strdup(buf);
+
+        tlscert->sigalg = strdup(gnutls_sign_get_name(gnutls_x509_crt_get_signature_algorithm(cert)));
+
+        gnutls_x509_crt_deinit(cert);
+        return tlscert;
+LBL_ERR:
+        xmpp_conn_free_tlscert(tlscert);
+    }
+    return NULL;
+}
+
+xmpp_tlscert_t *tls_peer_cert(xmpp_conn_t *conn)
+{
+    if (conn && conn->tls && conn->tls->session) {
+        return get_certificate_info(conn->ctx, conn->tls->session);
+    } else {
+        return NULL;
+    }
 }
 
 int tls_set_credentials(tls_t *tls, const char *cafilename)
