@@ -47,9 +47,9 @@ static const char response_md5_2[] =
     "ltYXAvZWx3b29kLmlubm9zb2Z0LmNvbSIscmVzcG9uc2U9ZDM4OGRhZDkw"
     "ZDRiYmQ3NjBhMTUyMzIxZjIxNDNhZjcscW9wPWF1dGg=";
 
-int test_plain(xmpp_ctx_t * ctx)
+int test_plain(xmpp_ctx_t *ctx)
 {
-    char * result;
+    char *result;
 
     result = sasl_plain(ctx, jid, password);
     if (result == NULL) {
@@ -65,12 +65,12 @@ int test_plain(xmpp_ctx_t * ctx)
     return 0;
 }
 
-int test_digest_md5(xmpp_ctx_t * ctx)
+int test_digest_md5(xmpp_ctx_t *ctx)
 {
-    char * result;
+    char *result;
 
-    result = sasl_digest_md5(ctx, challenge_md5,
-                             "somenode@somerealm", "secret");
+    result =
+        sasl_digest_md5(ctx, challenge_md5, "somenode@somerealm", "secret");
     printf("response:\n%s\n", result);
     if (strcmp(response_md5, result)) {
         /* generated incorrect response to challenge */
@@ -80,27 +80,33 @@ int test_digest_md5(xmpp_ctx_t * ctx)
     return 0;
 }
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
-    xmpp_ctx_t * ctx;
+    xmpp_ctx_t *ctx;
     int ret;
 
     printf("allocating context... ");
     ctx = xmpp_ctx_new(NULL, NULL);
-    if (ctx == NULL) printf("failed to create context\n");
-    if (ctx == NULL) return -1;
+    if (ctx == NULL)
+        printf("failed to create context\n");
+    if (ctx == NULL)
+        return -1;
     printf("ok.\n");
 
     printf("testing SASL PLAIN... ");
     ret = test_plain(ctx);
-    if (ret) printf("failed!\n");
-    if (ret) return ret;
+    if (ret)
+        printf("failed!\n");
+    if (ret)
+        return ret;
     printf("ok.\n");
 
     printf("testing SASL DIGEST-MD5... ");
     ret = test_digest_md5(ctx);
-    if (ret) printf("failed!\n");
-    if (ret) return ret;
+    if (ret)
+        printf("failed!\n");
+    if (ret)
+        return ret;
     printf("ok.\n");
 
     printf("freeing context... ");

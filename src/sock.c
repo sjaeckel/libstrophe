@@ -22,7 +22,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <Iphlpapi.h>
-#include <Mstcpip.h>    /* tcp_keepalive */
+#include <Mstcpip.h> /* tcp_keepalive */
 #else
 #include <errno.h>
 #include <unistd.h>
@@ -69,11 +69,11 @@ static int _in_progress(int error)
 #endif
 }
 
-sock_t sock_connect(const char * const host, const unsigned short port)
+sock_t sock_connect(const char *const host, const unsigned short port)
 {
     sock_t sock;
     char service[6];
-    struct addrinfo * res, *ainfo, hints;
+    struct addrinfo *res, *ainfo, hints;
     int err;
 
     xmpp_snprintf(service, 6, "%u", port);
@@ -123,7 +123,8 @@ int sock_set_keepalive(const sock_t sock, int timeout, int interval)
     ka.onoff = optval;
     ka.keepalivetime = timeout * 1000;
     ka.keepaliveinterval = interval * 1000;
-    ret = WSAIoctl(sock, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &dw, NULL, NULL);
+    ret = WSAIoctl(sock, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &dw,
+                   NULL, NULL);
 #else
     ret = setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
     if (ret < 0)
@@ -131,15 +132,19 @@ int sock_set_keepalive(const sock_t sock, int timeout, int interval)
 
     if (optval) {
 #ifdef TCP_KEEPIDLE
-        ret = setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &timeout, sizeof(timeout));
+        ret = setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &timeout,
+                         sizeof(timeout));
 #elif defined(TCP_KEEPALIVE)
-        /* QNX receives `struct timeval' as argument, but it seems OSX does int */
-        ret = setsockopt(sock, IPPROTO_TCP, TCP_KEEPALIVE, &timeout, sizeof(timeout));
+        /* QNX receives `struct timeval' as argument, but it seems OSX does int
+         */
+        ret = setsockopt(sock, IPPROTO_TCP, TCP_KEEPALIVE, &timeout,
+                         sizeof(timeout));
 #endif /* TCP_KEEPIDLE */
         if (ret < 0)
             return ret;
 #ifdef TCP_KEEPINTVL
-        ret = setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+        ret = setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval,
+                         sizeof(interval));
         if (ret < 0)
             return ret;
 #endif /* TCP_KEEPINTVL */
@@ -190,12 +195,12 @@ int sock_set_nonblocking(const sock_t sock)
 #endif
 }
 
-int sock_read(const sock_t sock, void * const buff, const size_t len)
+int sock_read(const sock_t sock, void *const buff, const size_t len)
 {
     return recv(sock, buff, len, 0);
 }
 
-int sock_write(const sock_t sock, const void * const buff, const size_t len)
+int sock_write(const sock_t sock, const void *const buff, const size_t len)
 {
     return send(sock, buff, len, 0);
 }
@@ -229,9 +234,11 @@ int sock_connect_error(const sock_t sock)
     /* it's possible that the error wasn't ENOTCONN, so if it wasn't,
      * return that */
 #ifdef _WIN32
-    if (sock_error() != WSAENOTCONN) return sock_error();
+    if (sock_error() != WSAENOTCONN)
+        return sock_error();
 #else
-    if (sock_error() != ENOTCONN) return sock_error();
+    if (sock_error() != ENOTCONN)
+        return sock_error();
 #endif
 
     /* load the correct error into errno through error slippage */

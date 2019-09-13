@@ -27,15 +27,14 @@
  *  @param ctx a Strophe context object
  *  @param uuid pre-allocated buffer of size (XMPP_UUID_LEN + 1)
  */
-static void crypto_uuid_gen(xmpp_ctx_t * ctx, char * uuid)
+static void crypto_uuid_gen(xmpp_ctx_t *ctx, char *uuid)
 {
     unsigned char buf[16];
     int i = 0; /* uuid iterator */
     int j = 0; /* buf iterator */
 
     static const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-                              };
+                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     xmpp_rand_bytes(ctx->rand, buf, sizeof(buf));
     buf[8] &= 0x3f;
@@ -62,9 +61,9 @@ static void crypto_uuid_gen(xmpp_ctx_t * ctx, char * uuid)
  *
  *  @return ASCIIZ string
  */
-char * xmpp_uuid_gen(xmpp_ctx_t * ctx)
+char *xmpp_uuid_gen(xmpp_ctx_t *ctx)
 {
-    char * uuid;
+    char *uuid;
 
     uuid = xmpp_alloc(ctx, XMPP_UUID_LEN + 1);
     if (uuid != NULL) {

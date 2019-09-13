@@ -1,5 +1,6 @@
 /* test_ctx.c
-** libstrophe XMPP client library -- test routines for the library run-time context
+** libstrophe XMPP client library -- test routines for the library run-time
+*context
 **
 ** Copyright (C) 2005-2009 Collecta, Inc.
 **
@@ -21,42 +22,43 @@ static int mem_alloc_called = 0;
 static int mem_free_called = 0;
 static int mem_realloc_called = 0;
 
-void * my_alloc(const size_t size, void * const userdata)
+void *my_alloc(const size_t size, void *const userdata)
 {
     mem_alloc_called++;
     return malloc(size);
 }
 
-void my_free(void * p, void * const userdata)
+void my_free(void *p, void *const userdata)
 {
     mem_free_called++;
     return free(p);
 }
 
-void * my_realloc(void * p, const size_t size, void * const userdata)
+void *my_realloc(void *p, const size_t size, void *const userdata)
 {
     mem_realloc_called++;
     return realloc(p, size);
 }
 
-void my_logger(void * const userdata, const xmpp_log_level_t level,
-               const char * const area, const char * const msg)
+void my_logger(void *const userdata, const xmpp_log_level_t level,
+               const char *const area, const char *const msg)
 {
-    if (strcmp((char *)userdata, "asdf") == 0 && level == XMPP_LEVEL_DEBUG
-        && strcmp(area, "test") == 0 && strcmp(msg, "hello") == 0)
+    if (strcmp((char *)userdata, "asdf") == 0 && level == XMPP_LEVEL_DEBUG &&
+        strcmp(area, "test") == 0 && strcmp(msg, "hello") == 0)
         log_called++;
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
-    xmpp_ctx_t * ctx;
+    xmpp_ctx_t *ctx;
     xmpp_mem_t mymem;
     xmpp_log_t mylog;
     char my_str[5] = "asdf";
-    void * testptr1, *testptr2;
+    void *testptr1, *testptr2;
 
     ctx = xmpp_ctx_new(NULL, NULL);
-    if (ctx == NULL) return 1;
+    if (ctx == NULL)
+        return 1;
 
     /* destroy context */
     xmpp_ctx_free(ctx);

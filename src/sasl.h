@@ -20,11 +20,11 @@
 
 /** low-level sasl routines */
 
-char * sasl_plain(xmpp_ctx_t * ctx, const char * authid, const char * password);
-char * sasl_digest_md5(xmpp_ctx_t * ctx, const char * challenge,
-                       const char * jid, const char * password);
-char * sasl_scram_sha1(xmpp_ctx_t * ctx, const char * challenge,
-                       const char * first_bare, const char * jid,
-                       const char * password);
+char *sasl_plain(xmpp_ctx_t *ctx, const char *authid, const char *password);
+char *sasl_digest_md5(xmpp_ctx_t *ctx, const char *challenge, const char *jid,
+                      const char *password);
+char *sasl_scram_sha1(xmpp_ctx_t *ctx, const char *challenge,
+                      const char *first_bare, const char *jid,
+                      const char *password);
 
 #endif /* _LIBXMPP_SASL_H__ */

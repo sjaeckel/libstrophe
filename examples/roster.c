@@ -18,12 +18,11 @@
 
 #include <strophe.h>
 
-int handle_reply(xmpp_conn_t * const conn,
-                 xmpp_stanza_t * const stanza,
-                 void * const userdata)
+int handle_reply(xmpp_conn_t *const conn, xmpp_stanza_t *const stanza,
+                 void *const userdata)
 {
-    xmpp_stanza_t * query, *item;
-    const char * type, *name;
+    xmpp_stanza_t *query, *item;
+    const char *type, *name;
 
     type = xmpp_stanza_get_type(stanza);
     if (strcmp(type, "error") == 0)
@@ -34,13 +33,11 @@ int handle_reply(xmpp_conn_t * const conn,
         for (item = xmpp_stanza_get_children(query); item;
              item = xmpp_stanza_get_next(item))
             if ((name = xmpp_stanza_get_attribute(item, "name")))
-                printf("\t %s (%s) sub=%s\n",
-                       name,
+                printf("\t %s (%s) sub=%s\n", name,
                        xmpp_stanza_get_attribute(item, "jid"),
                        xmpp_stanza_get_attribute(item, "subscription"));
             else
-                printf("\t %s sub=%s\n",
-                       xmpp_stanza_get_attribute(item, "jid"),
+                printf("\t %s sub=%s\n", xmpp_stanza_get_attribute(item, "jid"),
                        xmpp_stanza_get_attribute(item, "subscription"));
         printf("END OF LIST\n");
     }
@@ -51,12 +48,12 @@ int handle_reply(xmpp_conn_t * const conn,
     return 0;
 }
 
-void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
-                  const int error, xmpp_stream_error_t * const stream_error,
-                  void * const userdata)
+void conn_handler(xmpp_conn_t *const conn, const xmpp_conn_event_t status,
+                  const int error, xmpp_stream_error_t *const stream_error,
+                  void *const userdata)
 {
-    xmpp_ctx_t * ctx = (xmpp_ctx_t *)userdata;
-    xmpp_stanza_t * iq, *query;
+    xmpp_ctx_t *ctx = (xmpp_ctx_t *)userdata;
+    xmpp_stanza_t *iq, *query;
 
     if (status == XMPP_CONN_CONNECT) {
         fprintf(stderr, "DEBUG: connected\n");
@@ -87,10 +84,10 @@ void conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t status,
     }
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
-    xmpp_ctx_t * ctx;
-    xmpp_conn_t * conn;
+    xmpp_ctx_t *ctx;
+    xmpp_conn_t *conn;
 
     if (argc != 3) {
         fprintf(stderr, "Usage: roster <jid> <pass>\n\n");

@@ -24,21 +24,21 @@ typedef struct _tls tls_t;
 void tls_initialize(void);
 void tls_shutdown(void);
 
-tls_t * tls_new(xmpp_conn_t * conn);
-void tls_free(tls_t * tls);
+tls_t *tls_new(xmpp_conn_t *conn);
+void tls_free(tls_t *tls);
 
-int tls_set_credentials(tls_t * tls, const char * cafilename);
+int tls_set_credentials(tls_t *tls, const char *cafilename);
 
-int tls_start(tls_t * tls);
-int tls_stop(tls_t * tls);
+int tls_start(tls_t *tls);
+int tls_stop(tls_t *tls);
 
-int tls_error(tls_t * tls);
+int tls_error(tls_t *tls);
 
-int tls_pending(tls_t * tls);
-int tls_read(tls_t * tls, void * const buff, const size_t len);
-int tls_write(tls_t * tls, const void * const buff, const size_t len);
+int tls_pending(tls_t *tls);
+int tls_read(tls_t *tls, void *const buff, const size_t len);
+int tls_write(tls_t *tls, const void *const buff, const size_t len);
 
-int tls_clear_pending_write(tls_t * tls);
+int tls_clear_pending_write(tls_t *tls);
 int tls_is_recoverable(int error);
 
 #endif /* __LIBSTROPHE_TLS_H__ */

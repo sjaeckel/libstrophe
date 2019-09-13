@@ -20,15 +20,15 @@
  */
 
 #include <assert.h>
-#include <string.h>     /* memeset */
-#include <time.h>       /* clock, time */
+#include <string.h> /* memeset */
+#include <time.h>   /* clock, time */
 
-#include "common.h"     /* xmpp_alloc, xmpp_free */
-#include "ostypes.h"    /* uint8_t, uint32_t, size_t */
+#include "common.h"  /* xmpp_alloc, xmpp_free */
+#include "ostypes.h" /* uint8_t, uint32_t, size_t */
 #include "sha1.h"
-#include "snprintf.h"   /* xmpp_snprintf */
+#include "snprintf.h" /* xmpp_snprintf */
 
-#include "rand.h"       /* xmpp_rand_t */
+#include "rand.h" /* xmpp_rand_t */
 
 #define outlen SHA1_DIGEST_SIZE
 #define seedlen (440 / 8)
@@ -55,15 +55,15 @@ struct _xmpp_rand_t {
 };
 
 /* returns smallest number mupliple of y that not less than x */
-#define round_up(x, y) (((x) + (y) - 1) / (y) * (y))
+#define round_up(x, y) (((x) + (y)-1) / (y) * (y))
 /* returns smallest integer number that not less than x/y */
-#define div_round_up(x, y) (((x) + (y) - 1) / (y))
+#define div_round_up(x, y) (((x) + (y)-1) / (y))
 
 /* adds two arrays as numbers in big-endian representation and stores
  * result in the first one.
  */
-static void arr_add(uint8_t * arr1, size_t arr1_len,
-                    uint8_t * arr2, size_t arr2_len)
+static void arr_add(uint8_t *arr1, size_t arr1_len, uint8_t *arr2,
+                    size_t arr2_len)
 {
     size_t i;
     uint32_t acc;
@@ -89,8 +89,8 @@ static void store_be32(uint32_t val, uint8_t be[4])
     be[3] = (uint8_t)(val & 0xff);
 }
 
-static void Hash_df(uint8_t * input_string, size_t input_string_len,
-                    uint8_t * output_string, size_t no_of_bytes_to_return)
+static void Hash_df(uint8_t *input_string, size_t input_string_len,
+                    uint8_t *output_string, size_t no_of_bytes_to_return)
 {
     uint8_t counter;
     uint8_t temp[round_up(seedlen, outlen)];
@@ -116,14 +116,13 @@ static void Hash_df(uint8_t * input_string, size_t input_string_len,
 }
 
 /* assume personalization_string is zero length string */
-static void Hash_DRBG_Instantiate(Hash_DRBG_CTX * ctx,
-                                  uint8_t * entropy_input,
-                                  size_t entropy_input_len,
-                                  uint8_t * nonce, size_t nonce_len)
+static void Hash_DRBG_Instantiate(Hash_DRBG_CTX *ctx, uint8_t *entropy_input,
+                                  size_t entropy_input_len, uint8_t *nonce,
+                                  size_t nonce_len)
 {
     uint8_t seed_material[ENTROPY_MAX + NONCE_MAX];
     uint8_t seed0[seedlen + 1];
-    uint8_t * seed = seed0 + 1;
+    uint8_t *seed = seed0 + 1;
 
     assert(entropy_input_len <= ENTROPY_MAX);
     assert(nonce_len <= NONCE_MAX);
@@ -141,13 +140,12 @@ static void Hash_DRBG_Instantiate(Hash_DRBG_CTX * ctx,
 }
 
 /* assume additional_input is zero length string */
-static void Hash_DRBG_Reseed(Hash_DRBG_CTX * ctx,
-                             uint8_t * entropy_input,
+static void Hash_DRBG_Reseed(Hash_DRBG_CTX *ctx, uint8_t *entropy_input,
                              size_t entropy_input_len)
 {
     uint8_t seed_material[1 + seedlen + ENTROPY_MAX];
     uint8_t seed0[seedlen + 1];
-    uint8_t * seed = seed0 + 1;
+    uint8_t *seed = seed0 + 1;
 
     assert(entropy_input_len <= ENTROPY_MAX);
 
@@ -162,7 +160,7 @@ static void Hash_DRBG_Reseed(Hash_DRBG_CTX * ctx,
     ctx->reseed_counter = 1;
 }
 
-static void Hashgen(uint8_t * V, uint8_t * output,
+static void Hashgen(uint8_t *V, uint8_t *output,
                     size_t requested_number_of_bytes)
 {
     uint8_t data[seedlen];
@@ -187,7 +185,7 @@ static void Hashgen(uint8_t * V, uint8_t * output,
 }
 
 /* assume additional_input is zero length string */
-static int Hash_DRBG_Generate(Hash_DRBG_CTX * ctx, uint8_t * output,
+static int Hash_DRBG_Generate(Hash_DRBG_CTX *ctx, uint8_t *output,
                               size_t requested_number_of_bytes)
 {
     uint8_t H[outlen];
@@ -211,20 +209,20 @@ static int Hash_DRBG_Generate(Hash_DRBG_CTX * ctx, uint8_t * output,
     return 0;
 }
 
-#define ENTROPY_ACCUMULATE(ptr, last, type, arg)    \
-do {                                                \
-    type __arg = (type)(arg);                       \
-    if ((char*)ptr + sizeof(__arg) < (char*)last) { \
-        *(type*)ptr = __arg;                        \
-        ptr = (void*)((char*)ptr + sizeof(__arg));  \
-    }                                               \
-} while (0)
+#define ENTROPY_ACCUMULATE(ptr, last, type, arg)          \
+    do {                                                  \
+        type __arg = (type)(arg);                         \
+        if ((char *)ptr + sizeof(__arg) < (char *)last) { \
+            *(type *)ptr = __arg;                         \
+            ptr = (void *)((char *)ptr + sizeof(__arg));  \
+        }                                                 \
+    } while (0)
 
-static void xmpp_rand_reseed(xmpp_rand_t * rand)
+static void xmpp_rand_reseed(xmpp_rand_t *rand)
 {
     uint8_t entropy[ENTROPY_MAX];
-    uint8_t * ptr = entropy;
-    const uint8_t * last = entropy + sizeof(entropy);
+    uint8_t *ptr = entropy;
+    const uint8_t *last = entropy + sizeof(entropy);
     size_t len;
 
     /* entropy:
@@ -255,21 +253,21 @@ static void xmpp_rand_reseed(xmpp_rand_t * rand)
     }
 }
 
-xmpp_rand_t * xmpp_rand_new(xmpp_ctx_t * ctx)
+xmpp_rand_t *xmpp_rand_new(xmpp_ctx_t *ctx)
 {
-    xmpp_rand_t * out = xmpp_alloc(ctx, sizeof(*out));
+    xmpp_rand_t *out = xmpp_alloc(ctx, sizeof(*out));
     if (out != NULL) {
         memset(out, 0, sizeof(*out));
     }
     return out;
 }
 
-void xmpp_rand_free(xmpp_ctx_t * ctx, xmpp_rand_t * rand)
+void xmpp_rand_free(xmpp_ctx_t *ctx, xmpp_rand_t *rand)
 {
     xmpp_free(ctx, rand);
 }
 
-void xmpp_rand_bytes(xmpp_rand_t * rand, unsigned char * output, size_t len)
+void xmpp_rand_bytes(xmpp_rand_t *rand, unsigned char *output, size_t len)
 {
     int rc;
 
@@ -281,7 +279,7 @@ void xmpp_rand_bytes(xmpp_rand_t * rand, unsigned char * output, size_t len)
     }
 }
 
-int xmpp_rand(xmpp_rand_t * rand)
+int xmpp_rand(xmpp_rand_t *rand)
 {
     int result;
 
@@ -289,14 +287,14 @@ int xmpp_rand(xmpp_rand_t * rand)
     return result;
 }
 
-void xmpp_rand_nonce(xmpp_rand_t * rand, char * output, size_t len)
+void xmpp_rand_nonce(xmpp_rand_t *rand, char *output, size_t len)
 {
     size_t i;
     size_t rand_len = len / 2;
 #ifndef _MSC_VER
     unsigned char rand_buf[rand_len];
 #else
-    unsigned char * rand_buf = (unsigned char *)_alloca(rand_len);
+    unsigned char *rand_buf = (unsigned char *)_alloca(rand_len);
 #endif
 
     /* current implementation returns printable HEX representation of

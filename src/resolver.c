@@ -16,14 +16,14 @@
 #ifndef _WIN32
 #include <netinet/in.h>
 #include <arpa/nameser.h>
-#include <resolv.h>             /* res_query */
-#endif /* _WIN32 */
+#include <resolv.h> /* res_query */
+#endif              /* _WIN32 */
 
-#include <string.h>             /* strncpy */
+#include <string.h> /* strncpy */
 
 #include "ostypes.h"
 #include "snprintf.h"
-#include "util.h"               /* xmpp_min */
+#include "util.h" /* xmpp_min */
 #include "resolver.h"
 
 #define MESSAGE_HEADER_LEN 12
@@ -42,26 +42,26 @@ struct message_header {
 };
 
 #ifdef _WIN32
-static int resolver_win32_srv_lookup(xmpp_ctx_t * ctx, const char * fulldomain,
-                                     resolver_srv_rr_t ** srv_rr_list);
-static int resolver_win32_srv_query(const char * fulldomain,
-                                    unsigned char * buf, size_t len);
+static int resolver_win32_srv_lookup(xmpp_ctx_t *ctx, const char *fulldomain,
+                                     resolver_srv_rr_t **srv_rr_list);
+static int resolver_win32_srv_query(const char *fulldomain, unsigned char *buf,
+                                    size_t len);
 #endif /* _WIN32 */
 
 /* the same as ntohs(), but receives pointer to the value */
-static uint16_t xmpp_ntohs_ptr(const void * ptr)
+static uint16_t xmpp_ntohs_ptr(const void *ptr)
 {
-    const uint8_t * p = (const uint8_t *)ptr;
+    const uint8_t *p = (const uint8_t *)ptr;
 
     return (uint16_t)((p[0] << 8U) + p[1]);
 }
 
-static uint8_t message_header_qr(const struct message_header * header)
+static uint8_t message_header_qr(const struct message_header *header)
 {
     return (header->octet2 >> 7) & 1;
 }
 
-static uint8_t message_header_rcode(const struct message_header * header)
+static uint8_t message_header_rcode(const struct message_header *header)
 {
     return header->octet3 & 0x0f;
 }
@@ -71,9 +71,9 @@ static uint8_t message_header_rcode(const struct message_header * header)
  * Returns length of the non-truncated resulting string, may be bigger than
  * name_max.
  */
-static size_t message_name_append_safe(char * name, size_t name_len,
-                                       size_t name_max,
-                                       const char * tail, size_t tail_len)
+static size_t message_name_append_safe(char *name, size_t name_len,
+                                       size_t name_max, const char *tail,
+                                       size_t tail_len)
 {
     size_t copy_len;
 
@@ -86,9 +86,9 @@ static size_t message_name_append_safe(char * name, size_t name_len,
 }
 
 /* Returns length of the compressed name. This is NOT the same as strlen(). */
-static unsigned message_name_get(const unsigned char * buf, size_t buf_len,
-                                 unsigned buf_offset,
-                                 char * name, size_t name_max)
+static unsigned message_name_get(const unsigned char *buf, size_t buf_len,
+                                 unsigned buf_offset, char *name,
+                                 size_t name_max)
 {
     size_t name_len = 0;
     unsigned i = buf_offset;
@@ -96,26 +96,29 @@ static unsigned message_name_get(const unsigned char * buf, size_t buf_len,
     unsigned rc;
     unsigned char label_len;
 
-
     while (1) {
-        if (i >= buf_len) return 0;
+        if (i >= buf_len)
+            return 0;
         label_len = buf[i++];
-        if (label_len == 0) break;
+        if (label_len == 0)
+            break;
 
         /* Label */
         if ((label_len & 0xc0) == 0) {
-            if (i + label_len - 1 >= buf_len) return 0;
+            if (i + label_len - 1 >= buf_len)
+                return 0;
             if (name != NULL) {
                 name_len = message_name_append_safe(name, name_len, name_max,
                                                     (char *)&buf[i], label_len);
-                name_len = message_name_append_safe(name, name_len, name_max,
-                                                    ".", 1);
+                name_len =
+                    message_name_append_safe(name, name_len, name_max, ".", 1);
             }
             i += label_len;
 
             /* Pointer */
         } else if ((label_len & 0xc0) == 0xc0) {
-            if (i >= buf_len) return 0;
+            if (i >= buf_len)
+                return 0;
             pointer = (label_len & 0x3f) << 8 | buf[i++];
             if (name != NULL && name_len >= name_max && name_max > 0) {
                 /* We have filled the name buffer. Don't pass it recursively. */
@@ -123,10 +126,11 @@ static unsigned message_name_get(const unsigned char * buf, size_t buf_len,
                 name = NULL;
                 name_max = 0;
             }
-            rc = message_name_get(buf, buf_len, pointer,
-                                  name != NULL ? &name[name_len] : NULL,
-                                  name_max > name_len ? name_max - name_len : 0);
-            if (rc == 0) return 0;
+            rc = message_name_get(
+                buf, buf_len, pointer, name != NULL ? &name[name_len] : NULL,
+                name_max > name_len ? name_max - name_len : 0);
+            if (rc == 0)
+                return 0;
             /* Pointer is always the last. */
             break;
 
@@ -136,7 +140,8 @@ static unsigned message_name_get(const unsigned char * buf, size_t buf_len,
         }
     }
     if (label_len == 0) {
-        if (name_len == 0) name_len = 1;
+        if (name_len == 0)
+            name_len = 1;
         /*
          * At this point name_len is length of the resulting name,
          * including '\0'. This value can be exported to allocate buffer
@@ -154,18 +159,18 @@ static unsigned message_name_get(const unsigned char * buf, size_t buf_len,
     return i - buf_offset;
 }
 
-static unsigned message_name_len(const unsigned char * buf, size_t buf_len,
+static unsigned message_name_len(const unsigned char *buf, size_t buf_len,
                                  unsigned buf_offset)
 {
     return message_name_get(buf, buf_len, buf_offset, NULL, SIZE_MAX);
 }
 
-static void resolver_srv_list_sort(resolver_srv_rr_t ** srv_rr_list)
+static void resolver_srv_list_sort(resolver_srv_rr_t **srv_rr_list)
 {
-    resolver_srv_rr_t * rr_head;
-    resolver_srv_rr_t * rr_current;
-    resolver_srv_rr_t * rr_next;
-    resolver_srv_rr_t * rr_prev;
+    resolver_srv_rr_t *rr_head;
+    resolver_srv_rr_t *rr_current;
+    resolver_srv_rr_t *rr_next;
+    resolver_srv_rr_t *rr_prev;
     int swap;
 
     rr_head = *srv_rr_list;
@@ -216,17 +221,18 @@ static void resolver_srv_list_sort(resolver_srv_rr_t ** srv_rr_list)
     *srv_rr_list = rr_head;
 }
 
-#define BUF_OVERFLOW_CHECK(ptr, len) do {         \
-    if ((ptr) >= (len)) {                         \
-        if (*srv_rr_list != NULL)                 \
-            resolver_srv_free(ctx, *srv_rr_list); \
-        *srv_rr_list = NULL;                      \
-        return XMPP_DOMAIN_NOT_FOUND;             \
-    }                                             \
-} while (0)
+#define BUF_OVERFLOW_CHECK(ptr, len)                  \
+    do {                                              \
+        if ((ptr) >= (len)) {                         \
+            if (*srv_rr_list != NULL)                 \
+                resolver_srv_free(ctx, *srv_rr_list); \
+            *srv_rr_list = NULL;                      \
+            return XMPP_DOMAIN_NOT_FOUND;             \
+        }                                             \
+    } while (0)
 
-int resolver_srv_lookup_buf(xmpp_ctx_t * ctx, const unsigned char * buf,
-                            size_t len, resolver_srv_rr_t ** srv_rr_list)
+int resolver_srv_lookup_buf(xmpp_ctx_t *ctx, const unsigned char *buf,
+                            size_t len, resolver_srv_rr_t **srv_rr_list)
 {
     unsigned i;
     unsigned j;
@@ -235,7 +241,7 @@ int resolver_srv_lookup_buf(xmpp_ctx_t * ctx, const unsigned char * buf,
     uint16_t type;
     uint16_t class;
     struct message_header header;
-    resolver_srv_rr_t * rr;
+    resolver_srv_rr_t *rr;
 
     *srv_rr_list = NULL;
 
@@ -260,7 +266,8 @@ int resolver_srv_lookup_buf(xmpp_ctx_t * ctx, const unsigned char * buf,
         BUF_OVERFLOW_CHECK(j, len);
         name_len = message_name_len(buf, len, j);
         /* error in name format */
-        if (name_len == 0) return XMPP_DOMAIN_NOT_FOUND;
+        if (name_len == 0)
+            return XMPP_DOMAIN_NOT_FOUND;
         j += name_len + 4;
     }
 
@@ -268,7 +275,8 @@ int resolver_srv_lookup_buf(xmpp_ctx_t * ctx, const unsigned char * buf,
         BUF_OVERFLOW_CHECK(j, len);
         name_len = message_name_len(buf, len, j);
         /* error in name format */
-        if (name_len == 0) return XMPP_DOMAIN_NOT_FOUND;
+        if (name_len == 0)
+            return XMPP_DOMAIN_NOT_FOUND;
         j += name_len;
         BUF_OVERFLOW_CHECK(j + 16, len);
         type = xmpp_ntohs_ptr(&buf[j]);
@@ -295,16 +303,16 @@ int resolver_srv_lookup_buf(xmpp_ctx_t * ctx, const unsigned char * buf,
     return *srv_rr_list != NULL ? XMPP_DOMAIN_FOUND : XMPP_DOMAIN_NOT_FOUND;
 }
 
-int resolver_srv_lookup(xmpp_ctx_t * ctx, const char * service, const char * proto,
-                        const char * domain, resolver_srv_rr_t ** srv_rr_list)
+int resolver_srv_lookup(xmpp_ctx_t *ctx, const char *service, const char *proto,
+                        const char *domain, resolver_srv_rr_t **srv_rr_list)
 {
     char fulldomain[2048];
     unsigned char buf[65535];
     int len;
     int set = XMPP_DOMAIN_NOT_FOUND;
 
-    xmpp_snprintf(fulldomain, sizeof(fulldomain),
-                  "_%s._%s.%s", service, proto, domain);
+    xmpp_snprintf(fulldomain, sizeof(fulldomain), "_%s._%s.%s", service, proto,
+                  domain);
 
     *srv_rr_list = NULL;
 
@@ -313,7 +321,7 @@ int resolver_srv_lookup(xmpp_ctx_t * ctx, const char * service, const char * pro
     if (set == XMPP_DOMAIN_FOUND)
         return set;
     len = resolver_win32_srv_query(fulldomain, buf, sizeof(buf));
-#else /* _WIN32 */
+#else  /* _WIN32 */
     len = res_query(fulldomain, MESSAGE_C_IN, MESSAGE_T_SRV, buf, sizeof(buf));
 #endif /* _WIN32 */
 
@@ -323,9 +331,9 @@ int resolver_srv_lookup(xmpp_ctx_t * ctx, const char * service, const char * pro
     return set;
 }
 
-void resolver_srv_free(xmpp_ctx_t * ctx, resolver_srv_rr_t * srv_rr_list)
+void resolver_srv_free(xmpp_ctx_t *ctx, resolver_srv_rr_t *srv_rr_list)
 {
-    resolver_srv_rr_t * rr;
+    resolver_srv_rr_t *rr;
 
     while (srv_rr_list != NULL) {
         rr = srv_rr_list->next;
@@ -375,24 +383,25 @@ struct dnsquery_question {
     unsigned short qclass;
 };
 
-static void netbuf_add_16bitnum(unsigned char * buf, int buflen, int * offset, unsigned short num)
+static void netbuf_add_16bitnum(unsigned char *buf, int buflen, int *offset,
+                                unsigned short num)
 {
-    unsigned char * start = buf + *offset;
-    unsigned char * p = start;
+    unsigned char *start = buf + *offset;
+    unsigned char *p = start;
 
     /* assuming big endian */
     *p++ = (num >> 8) & 0xff;
-    *p++ = (num)      & 0xff;
+    *p++ = (num)&0xff;
 
     *offset += 2;
 }
 
-static void netbuf_add_domain_name(unsigned char * buf, int buflen, int * offset,
-                                   char * name)
+static void netbuf_add_domain_name(unsigned char *buf, int buflen, int *offset,
+                                   char *name)
 {
-    unsigned char * start = buf + *offset;
-    unsigned char * p = start;
-    unsigned char * wordstart, *wordend;
+    unsigned char *start = buf + *offset;
+    unsigned char *p = start;
+    unsigned char *wordstart, *wordend;
 
     wordstart = (unsigned char *)name;
 
@@ -425,21 +434,20 @@ static void netbuf_add_domain_name(unsigned char * buf, int buflen, int * offset
     *offset += (int)(p - start);
 }
 
-static void netbuf_add_dnsquery_header(unsigned char * buf, int buflen, int * offset, struct dnsquery_header * header)
+static void netbuf_add_dnsquery_header(unsigned char *buf, int buflen,
+                                       int *offset,
+                                       struct dnsquery_header *header)
 {
-    unsigned char * p;
+    unsigned char *p;
 
     netbuf_add_16bitnum(buf, buflen, offset, header->id);
 
     p = buf + *offset;
-    *p++ = ((header->qr     & 0x01) << 7)
-           | ((header->opcode & 0x0F) << 3)
-           | ((header->aa     & 0x01) << 2)
-           | ((header->tc     & 0x01) << 1)
-           | ((header->rd     & 0x01));
-    *p++ = ((header->ra     & 0x01) << 7)
-           | ((header->z      & 0x07) << 4)
-           | ((header->rcode  & 0x0F));
+    *p++ = ((header->qr & 0x01) << 7) | ((header->opcode & 0x0F) << 3) |
+           ((header->aa & 0x01) << 2) | ((header->tc & 0x01) << 1) |
+           ((header->rd & 0x01));
+    *p++ = ((header->ra & 0x01) << 7) | ((header->z & 0x07) << 4) |
+           ((header->rcode & 0x0F));
     *offset += 2;
 
     netbuf_add_16bitnum(buf, buflen, offset, header->qdcount);
@@ -448,32 +456,36 @@ static void netbuf_add_dnsquery_header(unsigned char * buf, int buflen, int * of
     netbuf_add_16bitnum(buf, buflen, offset, header->arcount);
 }
 
-static void netbuf_add_dnsquery_question(unsigned char * buf, int buflen, int * offset,
-        struct dnsquery_question * question)
+static void netbuf_add_dnsquery_question(unsigned char *buf, int buflen,
+                                         int *offset,
+                                         struct dnsquery_question *question)
 {
     netbuf_add_domain_name(buf, buflen, offset, question->qname);
     netbuf_add_16bitnum(buf, buflen, offset, question->qtype);
     netbuf_add_16bitnum(buf, buflen, offset, question->qclass);
 }
 
-static int resolver_win32_srv_lookup(xmpp_ctx_t * ctx, const char * fulldomain,
-                                     resolver_srv_rr_t ** srv_rr_list)
+static int resolver_win32_srv_lookup(xmpp_ctx_t *ctx, const char *fulldomain,
+                                     resolver_srv_rr_t **srv_rr_list)
 {
-    resolver_srv_rr_t * rr;
+    resolver_srv_rr_t *rr;
     HINSTANCE hdnsapi = NULL;
 
-    DNS_STATUS(WINAPI * pDnsQuery_A)(PCSTR, WORD, DWORD, PIP4_ARRAY, PDNS_RECORD *, PVOID *);
-    void (WINAPI * pDnsRecordListFree)(PDNS_RECORD, DNS_FREE_TYPE);
+    DNS_STATUS(WINAPI * pDnsQuery_A)
+    (PCSTR, WORD, DWORD, PIP4_ARRAY, PDNS_RECORD *, PVOID *);
+    void(WINAPI * pDnsRecordListFree)(PDNS_RECORD, DNS_FREE_TYPE);
 
     if (hdnsapi = LoadLibrary("dnsapi.dll")) {
         pDnsQuery_A = (void *)GetProcAddress(hdnsapi, "DnsQuery_A");
-        pDnsRecordListFree = (void *)GetProcAddress(hdnsapi, "DnsRecordListFree");
+        pDnsRecordListFree =
+            (void *)GetProcAddress(hdnsapi, "DnsRecordListFree");
 
         if (pDnsQuery_A && pDnsRecordListFree) {
             PDNS_RECORD dnsrecords = NULL;
             DNS_STATUS error;
 
-            error = pDnsQuery_A(fulldomain, DNS_TYPE_SRV, DNS_QUERY_STANDARD, NULL, &dnsrecords, NULL);
+            error = pDnsQuery_A(fulldomain, DNS_TYPE_SRV, DNS_QUERY_STANDARD,
+                                NULL, &dnsrecords, NULL);
 
             if (error == 0) {
                 PDNS_RECORD current = dnsrecords;
@@ -505,13 +517,14 @@ static int resolver_win32_srv_lookup(xmpp_ctx_t * ctx, const char * fulldomain,
     return *srv_rr_list != NULL ? XMPP_DOMAIN_FOUND : XMPP_DOMAIN_NOT_FOUND;
 }
 
-static int resolver_win32_srv_query(const char * fulldomain,
-                                    unsigned char * buf, size_t len)
+static int resolver_win32_srv_query(const char *fulldomain, unsigned char *buf,
+                                    size_t len)
 {
     int set = 0;
     int insize = 0;
 
-    /* if dnsapi didn't work/isn't there, try querying the dns server manually */
+    /* if dnsapi didn't work/isn't there, try querying the dns server manually
+     */
     if (!set) {
         struct dnsquery_header header;
         struct dnsquery_question question;
@@ -523,16 +536,18 @@ static int resolver_win32_srv_query(const char * fulldomain,
         int numdnsservers = 0;
         int j;
 
-        /* Try getting the DNS server ips from GetNetworkParams() in iphlpapi first */
+        /* Try getting the DNS server ips from GetNetworkParams() in iphlpapi
+         * first */
         if (!numdnsservers) {
             HINSTANCE hiphlpapi = NULL;
-            DWORD (WINAPI * pGetNetworkParams)(PFIXED_INFO, PULONG);
+            DWORD(WINAPI * pGetNetworkParams)(PFIXED_INFO, PULONG);
 
             if (hiphlpapi = LoadLibrary("Iphlpapi.dll")) {
-                pGetNetworkParams = (void *)GetProcAddress(hiphlpapi, "GetNetworkParams");
+                pGetNetworkParams =
+                    (void *)GetProcAddress(hiphlpapi, "GetNetworkParams");
 
                 if (pGetNetworkParams) {
-                    FIXED_INFO * fi;
+                    FIXED_INFO *fi;
                     ULONG len;
                     DWORD error;
                     char buffer[65535];
@@ -540,11 +555,13 @@ static int resolver_win32_srv_query(const char * fulldomain,
                     len = 65535;
                     fi = (FIXED_INFO *)buffer;
 
-                    if ((error = pGetNetworkParams(fi, &len)) == ERROR_SUCCESS) {
-                        IP_ADDR_STRING * pias = &(fi->DnsServerList);
+                    if ((error = pGetNetworkParams(fi, &len)) ==
+                        ERROR_SUCCESS) {
+                        IP_ADDR_STRING *pias = &(fi->DnsServerList);
 
                         while (pias && numdnsservers < 16) {
-                            strcpy(dnsserverips[numdnsservers++], pias->IpAddress.String);
+                            strcpy(dnsserverips[numdnsservers++],
+                                   pias->IpAddress.String);
                             pias = pias->Next;
                         }
                     }
@@ -558,25 +575,32 @@ static int resolver_win32_srv_query(const char * fulldomain,
             HKEY search;
             LONG error;
 
-            error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", 0, KEY_READ,
-                                 &search);
+            error = RegOpenKeyEx(
+                HKEY_LOCAL_MACHINE,
+                "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", 0,
+                KEY_READ, &search);
 
             if (error != ERROR_SUCCESS) {
-                error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\VxD\\MSTCP", 0, KEY_READ, &search);
+                error = RegOpenKeyEx(
+                    HKEY_LOCAL_MACHINE,
+                    "SYSTEM\\CurrentControlSet\\Services\\VxD\\MSTCP", 0,
+                    KEY_READ, &search);
             }
 
             if (error == ERROR_SUCCESS) {
                 char name[512];
                 DWORD len = 512;
 
-                error = RegQueryValueEx(search, "NameServer", NULL, NULL, (LPBYTE)name, &len);
+                error = RegQueryValueEx(search, "NameServer", NULL, NULL,
+                                        (LPBYTE)name, &len);
 
                 if (error != ERROR_SUCCESS) {
-                    error = RegQueryValueEx(search, "DhcpNameServer", NULL, NULL, (LPBYTE)name, &len);
+                    error = RegQueryValueEx(search, "DhcpNameServer", NULL,
+                                            NULL, (LPBYTE)name, &len);
                 }
 
                 if (error == ERROR_SUCCESS) {
-                    char * parse = "0123456789.", *start, *end;
+                    char *parse = "0123456789.", *start, *end;
                     start = name;
                     end = name;
                     name[len] = '\0';
@@ -586,7 +610,8 @@ static int resolver_win32_srv_query(const char * fulldomain,
                             end++;
                         }
 
-                        strncpy(dnsserverips[numdnsservers++], start, end - start);
+                        strncpy(dnsserverips[numdnsservers++], start,
+                                end - start);
 
                         while (*end && !strchr(parse, *end)) {
                             end++;
@@ -604,25 +629,32 @@ static int resolver_win32_srv_query(const char * fulldomain,
             HKEY searchlist;
             LONG error;
 
-            error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", 0,
-                                 KEY_READ, &searchlist);
+            error = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+                                 "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\P"
+                                 "arameters\\Interfaces",
+                                 0, KEY_READ, &searchlist);
 
             if (error == ERROR_SUCCESS) {
                 unsigned int i;
                 DWORD numinterfaces = 0;
 
-                RegQueryInfoKey(searchlist, NULL, NULL, NULL, &numinterfaces, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+                RegQueryInfoKey(searchlist, NULL, NULL, NULL, &numinterfaces,
+                                NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
                 for (i = 0; i < numinterfaces; i++) {
                     char name[512];
                     DWORD len = 512;
                     HKEY searchentry;
 
-                    RegEnumKeyEx(searchlist, i, (LPTSTR)name, &len, NULL, NULL, NULL, NULL);
+                    RegEnumKeyEx(searchlist, i, (LPTSTR)name, &len, NULL, NULL,
+                                 NULL, NULL);
 
-                    if (RegOpenKeyEx(searchlist, name, 0, KEY_READ, &searchentry) == ERROR_SUCCESS) {
-                        if (RegQueryValueEx(searchentry, "DhcpNameServer", NULL, NULL, (LPBYTE)name, &len) == ERROR_SUCCESS) {
-                            char * parse = "0123456789.", *start, *end;
+                    if (RegOpenKeyEx(searchlist, name, 0, KEY_READ,
+                                     &searchentry) == ERROR_SUCCESS) {
+                        if (RegQueryValueEx(searchentry, "DhcpNameServer", NULL,
+                                            NULL, (LPBYTE)name,
+                                            &len) == ERROR_SUCCESS) {
+                            char *parse = "0123456789.", *start, *end;
                             start = name;
                             end = name;
                             name[len] = '\0';
@@ -632,7 +664,8 @@ static int resolver_win32_srv_query(const char * fulldomain,
                                     end++;
                                 }
 
-                                strncpy(dnsserverips[numdnsservers++], start, end - start);
+                                strncpy(dnsserverips[numdnsservers++], start,
+                                        end - start);
 
                                 while (*end && !strchr(parse, *end)) {
                                     end++;
@@ -640,8 +673,10 @@ static int resolver_win32_srv_query(const char * fulldomain,
 
                                 start = end;
                             }
-                        } else if (RegQueryValueEx(searchentry, "NameServer", NULL, NULL, (LPBYTE)name, &len) == ERROR_SUCCESS) {
-                            char * parse = "0123456789.", *start, *end;
+                        } else if (RegQueryValueEx(searchentry, "NameServer",
+                                                   NULL, NULL, (LPBYTE)name,
+                                                   &len) == ERROR_SUCCESS) {
+                            char *parse = "0123456789.", *start, *end;
                             start = name;
                             end = name;
                             name[len] = '\0';
@@ -651,7 +686,8 @@ static int resolver_win32_srv_query(const char * fulldomain,
                                     end++;
                                 }
 
-                                strncpy(dnsserverips[numdnsservers++], start, end - start);
+                                strncpy(dnsserverips[numdnsservers++], start,
+                                        end - start);
 
                                 while (*end && !strchr(parse, *end)) {
                                     end++;
@@ -693,14 +729,16 @@ static int resolver_win32_srv_query(const char * fulldomain,
 
                 memset(&dnsaddr, 0, sizeof(dnsaddr));
 
-                dnsaddr.sin_family      = AF_INET;
-                dnsaddr.sin_port        = htons(53);
+                dnsaddr.sin_family = AF_INET;
+                dnsaddr.sin_port = htons(53);
                 dnsaddr.sin_addr.s_addr = inet_addr(dnsserverips[i]);
 
                 addrlen = sizeof(dnsaddr);
-                sendto(sock, (char *)buf, offset, 0, (struct sockaddr *)&dnsaddr, addrlen);
+                sendto(sock, (char *)buf, offset, 0,
+                       (struct sockaddr *)&dnsaddr, addrlen);
                 for (j = 0; j < 50; j++) {
-                    insize = recvfrom(sock, (char *)buf, (int)len, 0, (struct sockaddr *)&dnsaddr, &addrlen);
+                    insize = recvfrom(sock, (char *)buf, (int)len, 0,
+                                      (struct sockaddr *)&dnsaddr, &addrlen);
                     if (insize == SOCKET_ERROR) {
                         if (sock_error() == WSAEWOULDBLOCK) {
                             Sleep(100);
@@ -716,7 +754,6 @@ static int resolver_win32_srv_query(const char * fulldomain,
             }
             set = insize > 0;
         }
-
     }
 
     return set ? insize : -1;

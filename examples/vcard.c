@@ -17,9 +17,9 @@
 #include <strophe.h>
 
 typedef struct {
-    xmpp_ctx_t * ctx;
-    const char * recipient;
-    const char * img_path;
+    xmpp_ctx_t *ctx;
+    const char *recipient;
+    const char *img_path;
 } vcard_t;
 
 typedef void (*vcard_cb_t)(vcard_t *, xmpp_stanza_t *);
@@ -27,17 +27,17 @@ typedef void (*vcard_cb_t)(vcard_t *, xmpp_stanza_t *);
 #define REQ_TIMEOUT 5000
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-static void vcard_photo(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_photo(vcard_t *vc, xmpp_stanza_t *stanza)
 {
-    xmpp_stanza_t * tmp;
-    char * s;
-    char * tok;
-    char * saveptr = NULL;
-    char * copy;
-    unsigned char * img;
+    xmpp_stanza_t *tmp;
+    char *s;
+    char *tok;
+    char *saveptr = NULL;
+    char *copy;
+    unsigned char *img;
     size_t img_size;
     size_t written;
-    FILE * fd;
+    FILE *fd;
 
     tmp = xmpp_stanza_get_child_by_name(stanza, "TYPE");
     assert(tmp != NULL);
@@ -76,43 +76,43 @@ static void vcard_photo(vcard_t * vc, xmpp_stanza_t * stanza)
     xmpp_free(vc->ctx, img);
 }
 
-static void vcard_print_string(vcard_t * vc, xmpp_stanza_t * stanza,
-                               const char * info)
+static void vcard_print_string(vcard_t *vc, xmpp_stanza_t *stanza,
+                               const char *info)
 {
-    char * s = xmpp_stanza_get_text(stanza);
+    char *s = xmpp_stanza_get_text(stanza);
 
     assert(s != NULL);
     printf("%s: %s\n", info, s);
     xmpp_free(vc->ctx, s);
 }
 
-static void vcard_bday(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_bday(vcard_t *vc, xmpp_stanza_t *stanza)
 {
     vcard_print_string(vc, stanza, "Birthday");
 }
 
-static void vcard_desc(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_desc(vcard_t *vc, xmpp_stanza_t *stanza)
 {
     vcard_print_string(vc, stanza, "Description");
 }
 
-static void vcard_email(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_email(vcard_t *vc, xmpp_stanza_t *stanza)
 {
-    xmpp_stanza_t * userid = xmpp_stanza_get_child_by_name(stanza, "USERID");
+    xmpp_stanza_t *userid = xmpp_stanza_get_child_by_name(stanza, "USERID");
 
     if (userid != NULL)
         vcard_print_string(vc, userid, "E-mail");
 }
 
-static void vcard_fn(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_fn(vcard_t *vc, xmpp_stanza_t *stanza)
 {
     vcard_print_string(vc, stanza, "Full name");
 }
 
-static void vcard_name(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_name(vcard_t *vc, xmpp_stanza_t *stanza)
 {
-    xmpp_stanza_t * name = xmpp_stanza_get_child_by_name(stanza, "GIVEN");
-    xmpp_stanza_t * family = xmpp_stanza_get_child_by_name(stanza, "FAMILY");
+    xmpp_stanza_t *name = xmpp_stanza_get_child_by_name(stanza, "GIVEN");
+    xmpp_stanza_t *family = xmpp_stanza_get_child_by_name(stanza, "FAMILY");
 
     if (name != NULL)
         vcard_print_string(vc, name, "Given name");
@@ -120,26 +120,27 @@ static void vcard_name(vcard_t * vc, xmpp_stanza_t * stanza)
         vcard_print_string(vc, family, "Family name");
 }
 
-static void vcard_nick(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_nick(vcard_t *vc, xmpp_stanza_t *stanza)
 {
     vcard_print_string(vc, stanza, "Nickname");
 }
 
-static void vcard_url(vcard_t * vc, xmpp_stanza_t * stanza)
+static void vcard_url(vcard_t *vc, xmpp_stanza_t *stanza)
 {
     vcard_print_string(vc, stanza, "URL");
 }
 
-static vcard_cb_t vcard_cb_get(xmpp_stanza_t * stanza)
+static vcard_cb_t vcard_cb_get(xmpp_stanza_t *stanza)
 {
     vcard_cb_t cb = NULL;
-    const char * tag;
+    const char *tag;
     size_t i;
 
     static struct {
-        const char * tag;
+        const char *tag;
         vcard_cb_t cb;
     } vcard_tbl[] = {
+        /* clang-format off */
         { "PHOTO", vcard_photo },
         { "BDAY", vcard_bday },
         { "DESC", vcard_desc },
@@ -148,6 +149,7 @@ static vcard_cb_t vcard_cb_get(xmpp_stanza_t * stanza)
         { "N", vcard_name },
         { "NICKNAME", vcard_nick },
         { "URL", vcard_url },
+        /* clang-format on */
     };
 
     tag = xmpp_stanza_get_name(stanza);
@@ -165,7 +167,7 @@ exit:
     return cb;
 }
 
-static int timedout(xmpp_conn_t * const conn, void * const userdata)
+static int timedout(xmpp_conn_t *const conn, void *const userdata)
 {
     fprintf(stderr, "Timeout reached.\n");
     xmpp_disconnect(conn);
@@ -173,13 +175,13 @@ static int timedout(xmpp_conn_t * const conn, void * const userdata)
     return 0;
 }
 
-static int recv_vcard(xmpp_conn_t * const conn, xmpp_stanza_t * const stanza,
-                      void * const userdata)
+static int recv_vcard(xmpp_conn_t *const conn, xmpp_stanza_t *const stanza,
+                      void *const userdata)
 {
-    vcard_t * vc = userdata;
+    vcard_t *vc = userdata;
     vcard_cb_t cb;
-    xmpp_stanza_t * child;
-    char * s;
+    xmpp_stanza_t *child;
+    char *s;
     size_t s_size;
     int rc;
 
@@ -210,21 +212,21 @@ exit:
     return 0;
 }
 
-static void send_vcard_req(xmpp_conn_t * conn, const char * to, const char * id)
+static void send_vcard_req(xmpp_conn_t *conn, const char *to, const char *id)
 {
     printf("Requesting vCard from %s.\n", to);
-    xmpp_send_raw_string(conn, "<iq from='%s' to='%s' type='get' id='%s'>"
+    xmpp_send_raw_string(conn,
+                         "<iq from='%s' to='%s' type='get' id='%s'>"
                          "<vCard xmlns='vcard-temp'/></iq>",
                          xmpp_conn_get_bound_jid(conn), to, id);
 }
 
-static void conn_handler(xmpp_conn_t * const conn,
-                         const xmpp_conn_event_t status,
-                         const int error,
-                         xmpp_stream_error_t * const stream_error,
-                         void * const userdata)
+static void conn_handler(xmpp_conn_t *const conn,
+                         const xmpp_conn_event_t status, const int error,
+                         xmpp_stream_error_t *const stream_error,
+                         void *const userdata)
 {
-    vcard_t * vc = userdata;
+    vcard_t *vc = userdata;
 
     if (status == XMPP_CONN_CONNECT) {
         send_vcard_req(conn, vc->recipient, "vc1");
@@ -240,20 +242,21 @@ static void conn_handler(xmpp_conn_t * const conn,
     }
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
-    xmpp_log_t * log;
-    xmpp_ctx_t * ctx;
-    xmpp_conn_t * conn;
-    const char * jid;
-    const char * pass;
-    char    *    prog;
-    vcard_t      vcard;
+    xmpp_log_t *log;
+    xmpp_ctx_t *ctx;
+    xmpp_conn_t *conn;
+    const char *jid;
+    const char *pass;
+    char *prog;
+    vcard_t vcard;
 
     if (argc < 4 || argc > 5) {
         prog = argc > 0 ? strdup(argv[0]) : NULL;
         printf("Usage: %s <login-jid> <password> <recipient-jid> "
-               "[image-file]\n\n", prog == NULL ? "vcard" : basename(prog));
+               "[image-file]\n\n",
+               prog == NULL ? "vcard" : basename(prog));
         printf("If vCard contains a photo it will be stored to "
                "image-file. If you don't provide the image-file "
                "default filename will be generated.\n");
@@ -281,4 +284,3 @@ int main(int argc, char ** argv)
 
     return 0;
 }
-

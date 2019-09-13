@@ -23,18 +23,18 @@
 /* strtok_s() has appeared in visual studio 2005.
    Use own implementation for older versions. */
 #ifdef _MSC_VER
-# if (_MSC_VER >= 1400)
-# define strtok_r strtok_s
-# else
-# define strtok_r xmpp_strtok_r
-# endif
+#if (_MSC_VER >= 1400)
+#define strtok_r strtok_s
+#else
+#define strtok_r xmpp_strtok_r
+#endif
 #endif /* _MSC_VER */
 
 static int test_strtok_r(void)
 {
-    const char * test = "-abc-=-def--";
-    char * s1, *s2, *sub1, *sub2;
-    char * sp1, *sp2;
+    const char *test = "-abc-=-def--";
+    char *s1, *s2, *sub1, *sub2;
+    char *sp1, *sp2;
 
     s1 = strdup(test);
     s2 = strdup(test);
@@ -65,9 +65,9 @@ static int test_strtok_r(void)
     return 0;
 }
 
-static int test_strdup_one(xmpp_ctx_t * ctx, const char * s)
+static int test_strdup_one(xmpp_ctx_t *ctx, const char *s)
 {
-    char * s1, *s2;
+    char *s1, *s2;
     int rc = 0;
 
     s1 = strdup(s);
@@ -75,8 +75,8 @@ static int test_strdup_one(xmpp_ctx_t * ctx, const char * s)
 
     if (!s1 || !s2 || strcmp(s1, s2) != 0) {
         rc = -1;
-        printf("strdup: '%s', xmpp_strdup: '%s'\n",
-               s1 ? s1 : "<NULL>", s2 ? s2 : "<NULL>");
+        printf("strdup: '%s', xmpp_strdup: '%s'\n", s1 ? s1 : "<NULL>",
+               s2 ? s2 : "<NULL>");
     }
 
     free(s1);
@@ -88,11 +88,11 @@ static int test_strdup_one(xmpp_ctx_t * ctx, const char * s)
 
 static int test_strdup(void)
 {
-    xmpp_ctx_t * ctx;
+    xmpp_ctx_t *ctx;
     size_t i;
     int rc = 0;
 
-    static const char * tests[] = { "", "\0", "test", "s p a c e", "\n\r" };
+    static const char *tests[] = {"", "\0", "test", "s p a c e", "\n\r"};
 
     ctx = xmpp_ctx_new(NULL, NULL);
     assert(ctx != NULL);

@@ -29,15 +29,18 @@ int wait_for_connect(sock_t sock)
     FD_SET(sock, &efds);
 
     ret = select(sock + 1, NULL, &wfds, &efds, NULL);
-    if (ret <= 0) return -1;
+    if (ret <= 0)
+        return -1;
 
-    if (FD_ISSET(sock, &efds)) return 0;
-    if (FD_ISSET(sock, &wfds)) return 1;
+    if (FD_ISSET(sock, &efds))
+        return 0;
+    if (FD_ISSET(sock, &wfds))
+        return 1;
 
     return -1;
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
     sock_t sock;
     int err;

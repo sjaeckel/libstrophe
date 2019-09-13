@@ -17,9 +17,9 @@
 #ifndef __LIBSTROPHE_OSTYPES_H__
 #define __LIBSTROPHE_OSTYPES_H__
 
-#include <stddef.h>     /* size_t */
+#include <stddef.h> /* size_t */
 
-#if defined (_MSC_VER) && _MSC_VER < 1600
+#if defined(_MSC_VER) && _MSC_VER < 1600
 typedef signed char int8_t;
 typedef short int int16_t;
 typedef int int32_t;

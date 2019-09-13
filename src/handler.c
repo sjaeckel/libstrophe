@@ -33,10 +33,9 @@
  * TODO Convert handler lists to double-linked lists. Current implementation
  * works for O(n).
  */
-static void _handler_item_remove(xmpp_handlist_t ** head,
-                                 xmpp_handlist_t * item)
+static void _handler_item_remove(xmpp_handlist_t **head, xmpp_handlist_t *item)
 {
-    xmpp_handlist_t * i = *head;
+    xmpp_handlist_t *i = *head;
 
     if (i == item)
         *head = item->next;
@@ -56,11 +55,10 @@ static void _handler_item_remove(xmpp_handlist_t ** head,
  *  @param conn a Strophe connection object
  *  @param stanza a Strophe stanza object
  */
-void handler_fire_stanza(xmpp_conn_t * const conn,
-                         xmpp_stanza_t * const stanza)
+void handler_fire_stanza(xmpp_conn_t *const conn, xmpp_stanza_t *const stanza)
 {
-    xmpp_handlist_t * item, *next, *head, *head_old;
-    const char * id, *ns, *name, *type;
+    xmpp_handlist_t *item, *next, *head, *head_old;
+    const char *id, *ns, *name, *type;
     int ret;
 
     /* call id handlers */
@@ -75,7 +73,8 @@ void handler_fire_stanza(xmpp_conn_t * const conn,
         while (item) {
             /* don't fire user handlers until authentication succeeds and
                and skip newly added handlers */
-            if ((item->user_handler && !conn->authenticated) || !item->enabled) {
+            if ((item->user_handler && !conn->authenticated) ||
+                !item->enabled) {
                 item = item->next;
                 continue;
             }
@@ -127,9 +126,12 @@ void handler_fire_stanza(xmpp_conn_t * const conn,
             if (!ret) {
                 /* handler is one-shot, so delete it */
                 _handler_item_remove(&conn->handlers, item);
-                if (item->ns) xmpp_free(conn->ctx, item->ns);
-                if (item->name) xmpp_free(conn->ctx, item->name);
-                if (item->type) xmpp_free(conn->ctx, item->type);
+                if (item->ns)
+                    xmpp_free(conn->ctx, item->ns);
+                if (item->name)
+                    xmpp_free(conn->ctx, item->name);
+                if (item->type)
+                    xmpp_free(conn->ctx, item->type);
                 xmpp_free(conn->ctx, item);
             }
         }
@@ -144,11 +146,11 @@ void handler_fire_stanza(xmpp_conn_t * const conn,
  *
  *  @return the time in milliseconds until the next handler will be ready
  */
-uint64_t handler_fire_timed(xmpp_ctx_t * const ctx)
+uint64_t handler_fire_timed(xmpp_ctx_t *const ctx)
 {
-    xmpp_connlist_t * connitem;
-    xmpp_handlist_t * item, *next;
-    xmpp_conn_t * conn;
+    xmpp_connlist_t *connitem;
+    xmpp_handlist_t *item, *next;
+    xmpp_conn_t *conn;
     uint64_t elapsed, min;
     uint64_t timestamp;
     int ret;
@@ -171,7 +173,8 @@ uint64_t handler_fire_timed(xmpp_ctx_t * const ctx)
         while (item) {
             /* don't fire user handlers until authentication succeeds and
                skip newly added handlers */
-            if ((item->user_handler && !conn->authenticated) || !item->enabled) {
+            if ((item->user_handler && !conn->authenticated) ||
+                !item->enabled) {
                 item = item->next;
                 continue;
             }
@@ -208,9 +211,9 @@ uint64_t handler_fire_timed(xmpp_ctx_t * const ctx)
  *  @param conn a Strophe connection object
  *  @param user_only whether to reset all handlers or only user ones
  */
-void handler_reset_timed(xmpp_conn_t * conn, int user_only)
+void handler_reset_timed(xmpp_conn_t *conn, int user_only)
 {
-    xmpp_handlist_t * handitem;
+    xmpp_handlist_t *handitem;
 
     handitem = conn->timed_handlers;
     while (handitem) {
@@ -221,13 +224,12 @@ void handler_reset_timed(xmpp_conn_t * conn, int user_only)
     }
 }
 
-static void _timed_handler_add(xmpp_conn_t * const conn,
+static void _timed_handler_add(xmpp_conn_t *const conn,
                                xmpp_timed_handler handler,
-                               const unsigned long period,
-                               void * const userdata,
+                               const unsigned long period, void *const userdata,
                                const int user_handler)
 {
-    xmpp_handlist_t * item, *tail;
+    xmpp_handlist_t *item, *tail;
 
     /* check if handler is already in the list */
     for (item = conn->timed_handlers; item; item = item->next) {
@@ -236,11 +238,13 @@ static void _timed_handler_add(xmpp_conn_t * const conn,
             break;
         }
     }
-    if (item) return;
+    if (item)
+        return;
 
     /* build new item */
     item = xmpp_alloc(conn->ctx, sizeof(xmpp_handlist_t));
-    if (!item) return;
+    if (!item)
+        return;
 
     item->user_handler = user_handler;
     item->handler = handler;
@@ -269,12 +273,13 @@ static void _timed_handler_add(xmpp_conn_t * const conn,
  *
  *  @ingroup Handlers
  */
-void xmpp_timed_handler_delete(xmpp_conn_t * const conn,
+void xmpp_timed_handler_delete(xmpp_conn_t *const conn,
                                xmpp_timed_handler handler)
 {
-    xmpp_handlist_t * item, *prev;
+    xmpp_handlist_t *item, *prev;
 
-    if (!conn->timed_handlers) return;
+    if (!conn->timed_handlers)
+        return;
 
     prev = NULL;
     item = conn->timed_handlers;
@@ -294,12 +299,11 @@ void xmpp_timed_handler_delete(xmpp_conn_t * const conn,
     }
 }
 
-static void _id_handler_add(xmpp_conn_t * const conn,
-                            xmpp_handler handler,
-                            const char * const id,
-                            void * const userdata, int user_handler)
+static void _id_handler_add(xmpp_conn_t *const conn, xmpp_handler handler,
+                            const char *const id, void *const userdata,
+                            int user_handler)
 {
-    xmpp_handlist_t * item, *tail;
+    xmpp_handlist_t *item, *tail;
 
     /* check if handler is already in the list */
     item = (xmpp_handlist_t *)hash_get(conn->id_handlers, id);
@@ -310,11 +314,13 @@ static void _id_handler_add(xmpp_conn_t * const conn,
         }
         item = item->next;
     }
-    if (item) return;
+    if (item)
+        return;
 
     /* build new item */
     item = xmpp_alloc(conn->ctx, sizeof(xmpp_handlist_t));
-    if (!item) return;
+    if (!item)
+        return;
 
     item->user_handler = user_handler;
     item->handler = handler;
@@ -347,15 +353,15 @@ static void _id_handler_add(xmpp_conn_t * const conn,
  *
  *  @ingroup Handlers
  */
-void xmpp_id_handler_delete(xmpp_conn_t * const conn,
-                            xmpp_handler handler,
-                            const char * const id)
+void xmpp_id_handler_delete(xmpp_conn_t *const conn, xmpp_handler handler,
+                            const char *const id)
 {
-    xmpp_handlist_t * item, *prev, *next;
+    xmpp_handlist_t *item, *prev, *next;
 
     prev = NULL;
     item = (xmpp_handlist_t *)hash_get(conn->id_handlers, id);
-    if (!item) return;
+    if (!item)
+        return;
 
     while (item) {
         next = item->next;
@@ -379,14 +385,12 @@ void xmpp_id_handler_delete(xmpp_conn_t * const conn,
 }
 
 /* add a stanza handler */
-static void _handler_add(xmpp_conn_t * const conn,
-                         xmpp_handler handler,
-                         const char * const ns,
-                         const char * const name,
-                         const char * const type,
-                         void * const userdata, int user_handler)
+static void _handler_add(xmpp_conn_t *const conn, xmpp_handler handler,
+                         const char *const ns, const char *const name,
+                         const char *const type, void *const userdata,
+                         int user_handler)
 {
-    xmpp_handlist_t * item, *tail;
+    xmpp_handlist_t *item, *tail;
 
     /* check if handler already in list */
     for (item = conn->handlers; item; item = item->next) {
@@ -397,11 +401,13 @@ static void _handler_add(xmpp_conn_t * const conn,
             break;
         }
     }
-    if (item) return;
+    if (item)
+        return;
 
     /* build new item */
     item = (xmpp_handlist_t *)xmpp_alloc(conn->ctx, sizeof(xmpp_handlist_t));
-    if (!item) return;
+    if (!item)
+        return;
 
     item->user_handler = user_handler;
     item->handler = handler;
@@ -420,7 +426,8 @@ static void _handler_add(xmpp_conn_t * const conn,
     if (name) {
         item->name = xmpp_strdup(conn->ctx, name);
         if (!item->name) {
-            if (item->ns) xmpp_free(conn->ctx, item->ns);
+            if (item->ns)
+                xmpp_free(conn->ctx, item->ns);
             xmpp_free(conn->ctx, item);
             return;
         }
@@ -429,8 +436,10 @@ static void _handler_add(xmpp_conn_t * const conn,
     if (type) {
         item->type = xmpp_strdup(conn->ctx, type);
         if (!item->type) {
-            if (item->ns) xmpp_free(conn->ctx, item->ns);
-            if (item->name) xmpp_free(conn->ctx, item->name);
+            if (item->ns)
+                xmpp_free(conn->ctx, item->ns);
+            if (item->name)
+                xmpp_free(conn->ctx, item->name);
             xmpp_free(conn->ctx, item);
         }
     } else
@@ -454,12 +463,12 @@ static void _handler_add(xmpp_conn_t * const conn,
  *
  *  @ingroup Handlers
  */
-void xmpp_handler_delete(xmpp_conn_t * const conn,
-                         xmpp_handler handler)
+void xmpp_handler_delete(xmpp_conn_t *const conn, xmpp_handler handler)
 {
-    xmpp_handlist_t * prev, *item;
+    xmpp_handlist_t *prev, *item;
 
-    if (!conn->handlers) return;
+    if (!conn->handlers)
+        return;
 
     prev = NULL;
     item = conn->handlers;
@@ -470,9 +479,12 @@ void xmpp_handler_delete(xmpp_conn_t * const conn,
             else
                 conn->handlers = item->next;
 
-            if (item->ns) xmpp_free(conn->ctx, item->ns);
-            if (item->name) xmpp_free(conn->ctx, item->name);
-            if (item->type) xmpp_free(conn->ctx, item->type);
+            if (item->ns)
+                xmpp_free(conn->ctx, item->ns);
+            if (item->name)
+                xmpp_free(conn->ctx, item->name);
+            if (item->type)
+                xmpp_free(conn->ctx, item->type);
             xmpp_free(conn->ctx, item);
             item = prev ? prev->next : conn->handlers;
         } else {
@@ -498,10 +510,8 @@ void xmpp_handler_delete(xmpp_conn_t * const conn,
  *
  *  @ingroup Handlers
  */
-void xmpp_timed_handler_add(xmpp_conn_t * const conn,
-                            xmpp_timed_handler handler,
-                            const unsigned long period,
-                            void * const userdata)
+void xmpp_timed_handler_add(xmpp_conn_t *const conn, xmpp_timed_handler handler,
+                            const unsigned long period, void *const userdata)
 {
     _timed_handler_add(conn, handler, period, userdata, 1);
 }
@@ -515,10 +525,8 @@ void xmpp_timed_handler_add(xmpp_conn_t * const conn,
  *  @param period the time in milliseconds between firings
  *  @param userdata an opaque data pointer that will be passed to the handler
  */
-void handler_add_timed(xmpp_conn_t * const conn,
-                       xmpp_timed_handler handler,
-                       const unsigned long period,
-                       void * const userdata)
+void handler_add_timed(xmpp_conn_t *const conn, xmpp_timed_handler handler,
+                       const unsigned long period, void *const userdata)
 {
     _timed_handler_add(conn, handler, period, userdata, 0);
 }
@@ -539,10 +547,8 @@ void handler_add_timed(xmpp_conn_t * const conn,
  *
  *  @ingroup Handlers
  */
-void xmpp_id_handler_add(xmpp_conn_t * const conn,
-                         xmpp_handler handler,
-                         const char * const id,
-                         void * const userdata)
+void xmpp_id_handler_add(xmpp_conn_t *const conn, xmpp_handler handler,
+                         const char *const id, void *const userdata)
 {
     _id_handler_add(conn, handler, id, userdata, 1);
 }
@@ -556,10 +562,8 @@ void xmpp_id_handler_add(xmpp_conn_t * const conn,
  *  @param id a string with the id
  *  @param userdata an opaque data pointer that will be passed to the handler
  */
-void handler_add_id(xmpp_conn_t * const conn,
-                    xmpp_handler handler,
-                    const char * const id,
-                    void * const userdata)
+void handler_add_id(xmpp_conn_t *const conn, xmpp_handler handler,
+                    const char *const id, void *const userdata)
 {
     _id_handler_add(conn, handler, id, userdata, 0);
 }
@@ -586,12 +590,9 @@ void handler_add_id(xmpp_conn_t * const conn,
  *
  *  @ingroup Handlers
  */
-void xmpp_handler_add(xmpp_conn_t * const conn,
-                      xmpp_handler handler,
-                      const char * const ns,
-                      const char * const name,
-                      const char * const type,
-                      void * const userdata)
+void xmpp_handler_add(xmpp_conn_t *const conn, xmpp_handler handler,
+                      const char *const ns, const char *const name,
+                      const char *const type, void *const userdata)
 {
     _handler_add(conn, handler, ns, name, type, userdata, 1);
 }
@@ -607,12 +608,9 @@ void xmpp_handler_add(xmpp_conn_t * const conn,
  *  @param type a string with the 'type' attribute value to match
  *  @param userdata an opaque data pointer that will be passed to the handler
  */
-void handler_add(xmpp_conn_t * const conn,
-                 xmpp_handler handler,
-                 const char * const ns,
-                 const char * const name,
-                 const char * const type,
-                 void * const userdata)
+void handler_add(xmpp_conn_t *const conn, xmpp_handler handler,
+                 const char *const ns, const char *const name,
+                 const char *const type, void *const userdata)
 {
     _handler_add(conn, handler, ns, name, type, userdata, 0);
 }
@@ -622,12 +620,12 @@ void handler_add(xmpp_conn_t * const conn,
  *
  *  @param conn a Strophe connection object
  */
-void handler_system_delete_all(xmpp_conn_t * conn)
+void handler_system_delete_all(xmpp_conn_t *conn)
 {
-    xmpp_handlist_t * item, *next, *head, *head_old;
-    hash_iterator_t * iter;
-    const char * key;
-    char * key2 = NULL;
+    xmpp_handlist_t *item, *next, *head, *head_old;
+    hash_iterator_t *iter;
+    const char *key;
+    char *key2 = NULL;
 
     /* TODO unify all kinds of handlers and avoid copy-paste below */
 
@@ -636,9 +634,12 @@ void handler_system_delete_all(xmpp_conn_t * conn)
         if (!item->user_handler) {
             next = item->next;
             _handler_item_remove(&conn->handlers, item);
-            if (item->ns) xmpp_free(conn->ctx, item->ns);
-            if (item->name) xmpp_free(conn->ctx, item->name);
-            if (item->type) xmpp_free(conn->ctx, item->type);
+            if (item->ns)
+                xmpp_free(conn->ctx, item->ns);
+            if (item->name)
+                xmpp_free(conn->ctx, item->name);
+            if (item->type)
+                xmpp_free(conn->ctx, item->type);
             xmpp_free(conn->ctx, item);
             item = next;
         } else
@@ -686,5 +687,6 @@ void handler_system_delete_all(xmpp_conn_t * conn)
             xmpp_free(conn->ctx, key2);
         }
     }
-    if (iter) hash_iter_release(iter);
+    if (iter)
+        hash_iter_release(iter);
 }

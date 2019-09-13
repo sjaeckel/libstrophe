@@ -22,22 +22,18 @@
 #define TESTSIZE 500
 
 /* static test data */
-const char * keys[] = {
-    "foo", "bar", "baz", "quux", "xyzzy"
-};
-const char * values[] = {
-    "wuzzle", "mug", "canonical", "rosebud", "lottery"
-};
+const char *keys[] = {"foo", "bar", "baz", "quux", "xyzzy"};
+const char *values[] = {"wuzzle", "mug", "canonical", "rosebud", "lottery"};
 const int nkeys = ARRAY_SIZE(keys);
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
-    xmpp_ctx_t * ctx;
-    hash_t * table, *clone;
-    hash_iterator_t * iter;
+    xmpp_ctx_t *ctx;
+    hash_t *table, *clone;
+    hash_iterator_t *iter;
     unsigned int seed;
-    const char * key;
-    char * result;
+    const char *key;
+    char *result;
     int err = 0;
     int i;
 
@@ -68,7 +64,8 @@ int main(int argc, char ** argv)
     /* test insertion */
     for (i = 0; i < nkeys; i++) {
         err = hash_add(table, keys[i], xmpp_strdup(ctx, values[i]));
-        if (err) return err;
+        if (err)
+            return err;
     }
 
     /* test key count */
@@ -80,11 +77,15 @@ int main(int argc, char ** argv)
     /* test replacing old values */
     for (i = 0; i < nkeys; i++) {
         err = hash_add(table, keys[0], xmpp_strdup(ctx, values[i]));
-        if (err) return err;
-        if (hash_num_keys(table) != nkeys) return 1;
+        if (err)
+            return err;
+        if (hash_num_keys(table) != nkeys)
+            return 1;
         result = hash_get(table, keys[0]);
-        if (result == NULL) return 1;
-        if (strcmp(result, values[i]) != 0) return 1;
+        if (result == NULL)
+            return 1;
+        if (strcmp(result, values[i]) != 0)
+            return 1;
     }
     /* restore value for the 1st key */
     hash_add(table, keys[0], xmpp_strdup(ctx, values[0]));
@@ -132,14 +133,19 @@ int main(int argc, char ** argv)
 
     /* test drops */
     hash_drop(clone, keys[2]);
-    if (hash_get(clone, keys[2]) != NULL) return 1;
+    if (hash_get(clone, keys[2]) != NULL)
+        return 1;
     hash_drop(clone, keys[1]);
     hash_drop(clone, keys[4]);
-    if (hash_get(clone, keys[4]) != NULL) return 1;
-    if (hash_get(clone, keys[1]) != NULL) return 1;
+    if (hash_get(clone, keys[4]) != NULL)
+        return 1;
+    if (hash_get(clone, keys[1]) != NULL)
+        return 1;
     /* keys 0,3 should still be available */
-    if (hash_get(clone, keys[0]) == NULL) return 1;
-    if (hash_get(clone, keys[3]) == NULL) return 1;
+    if (hash_get(clone, keys[0]) == NULL)
+        return 1;
+    if (hash_get(clone, keys[3]) == NULL)
+        return 1;
 
     /* release our clone */
     hash_release(clone);

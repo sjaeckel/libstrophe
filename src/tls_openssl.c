@@ -13,7 +13,7 @@
  *  TLS implementation with OpenSSL.
  */
 
-#include <errno.h>   /* EINTR */
+#include <errno.h> /* EINTR */
 #include <string.h>
 
 #ifndef _WIN32
@@ -32,10 +32,10 @@
 #include "sock.h"
 
 struct _tls {
-    xmpp_ctx_t * ctx;
+    xmpp_ctx_t *ctx;
     sock_t sock;
-    SSL_CTX * ssl_ctx;
-    SSL * ssl;
+    SSL_CTX *ssl_ctx;
+    SSL *ssl;
     int lasterror;
 };
 
@@ -45,10 +45,10 @@ enum {
     TLS_TIMEOUT_USEC = 100000,
 };
 
-static void _tls_sock_wait(tls_t * tls, int error);
-static void _tls_set_error(tls_t * tls, int error);
-static void _tls_log_error(xmpp_ctx_t * ctx);
-static void _tls_dump_cert_info(tls_t * tls);
+static void _tls_sock_wait(tls_t *tls, int error);
+static void _tls_set_error(tls_t *tls, int error);
+static void _tls_log_error(xmpp_ctx_t *ctx);
+static void _tls_dump_cert_info(tls_t *tls);
 
 void tls_initialize(void)
 {
@@ -82,14 +82,14 @@ void tls_shutdown(void)
 #endif
 }
 
-int tls_error(tls_t * tls)
+int tls_error(tls_t *tls)
 {
     return tls->lasterror;
 }
 
-tls_t * tls_new(xmpp_conn_t * conn)
+tls_t *tls_new(xmpp_conn_t *conn)
 {
-    tls_t * tls = xmpp_alloc(conn->ctx, sizeof(*tls));
+    tls_t *tls = xmpp_alloc(conn->ctx, sizeof(*tls));
     int mode;
 
     if (tls) {
@@ -123,15 +123,17 @@ tls_t * tls_new(xmpp_conn_t * conn)
         SSL_set_verify(tls->ssl, mode, 0);
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
         /* Hostname verification is supported in OpenSSL 1.0.2 and newer. */
-        X509_VERIFY_PARAM * param = SSL_get0_param(tls->ssl);
+        X509_VERIFY_PARAM *param = SSL_get0_param(tls->ssl);
 
         /*
          * Allow only complete wildcards.  RFC 6125 discourages wildcard usage
          * completely, and lists internationalized domain names as a reason
          * against partial wildcards.
-         * See https://tools.ietf.org/html/rfc6125#section-7.2 for more information.
+         * See https://tools.ietf.org/html/rfc6125#section-7.2 for more
+         * information.
          */
-        X509_VERIFY_PARAM_set_hostflags(param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+        X509_VERIFY_PARAM_set_hostflags(param,
+                                        X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
         X509_VERIFY_PARAM_set1_host(param, conn->domain, 0);
 #endif
 
@@ -152,19 +154,19 @@ err:
     return NULL;
 }
 
-void tls_free(tls_t * tls)
+void tls_free(tls_t *tls)
 {
     SSL_free(tls->ssl);
     SSL_CTX_free(tls->ssl_ctx);
     xmpp_free(tls->ctx, tls);
 }
 
-int tls_set_credentials(tls_t * tls, const char * cafilename)
+int tls_set_credentials(tls_t *tls, const char *cafilename)
 {
     return -1;
 }
 
-int tls_start(tls_t * tls)
+int tls_start(tls_t *tls)
 {
     int error;
     int ret;
@@ -195,7 +197,7 @@ int tls_start(tls_t * tls)
     return ret <= 0 ? 0 : 1;
 }
 
-int tls_stop(tls_t * tls)
+int tls_stop(tls_t *tls)
 {
     int retries = 0;
     int error;
@@ -231,18 +233,17 @@ int tls_stop(tls_t * tls)
 
 int tls_is_recoverable(int error)
 {
-    return (error == SSL_ERROR_NONE || error == SSL_ERROR_WANT_READ
-            || error == SSL_ERROR_WANT_WRITE
-            || error == SSL_ERROR_WANT_CONNECT
-            || error == SSL_ERROR_WANT_ACCEPT);
+    return (error == SSL_ERROR_NONE || error == SSL_ERROR_WANT_READ ||
+            error == SSL_ERROR_WANT_WRITE || error == SSL_ERROR_WANT_CONNECT ||
+            error == SSL_ERROR_WANT_ACCEPT);
 }
 
-int tls_pending(tls_t * tls)
+int tls_pending(tls_t *tls)
 {
     return SSL_pending(tls->ssl);
 }
 
-int tls_read(tls_t * tls, void * const buff, const size_t len)
+int tls_read(tls_t *tls, void *const buff, const size_t len)
 {
     int ret;
 
@@ -252,7 +253,7 @@ int tls_read(tls_t * tls, void * const buff, const size_t len)
     return ret;
 }
 
-int tls_write(tls_t * tls, const void * const buff, const size_t len)
+int tls_write(tls_t *tls, const void *const buff, const size_t len)
 {
     int ret;
 
@@ -262,12 +263,12 @@ int tls_write(tls_t * tls, const void * const buff, const size_t len)
     return ret;
 }
 
-int tls_clear_pending_write(tls_t * tls)
+int tls_clear_pending_write(tls_t *tls)
 {
     return 0;
 }
 
-static void _tls_sock_wait(tls_t * tls, int error)
+static void _tls_sock_wait(tls_t *tls, int error)
 {
     struct timeval tv;
     fd_set rfds;
@@ -275,7 +276,8 @@ static void _tls_sock_wait(tls_t * tls, int error)
     int nfds;
     int ret;
 
-    if (error == SSL_ERROR_NONE) return;
+    if (error == SSL_ERROR_NONE)
+        return;
 
     FD_ZERO(&rfds);
     FD_ZERO(&wfds);
@@ -283,8 +285,9 @@ static void _tls_sock_wait(tls_t * tls, int error)
         FD_SET(tls->sock, &rfds);
     if (error == SSL_ERROR_WANT_WRITE)
         FD_SET(tls->sock, &wfds);
-    nfds = (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) ?
-           tls->sock + 1 : 0;
+    nfds = (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE)
+               ? tls->sock + 1
+               : 0;
     do {
         tv.tv_sec = TLS_TIMEOUT_SEC;
         tv.tv_usec = TLS_TIMEOUT_USEC;
@@ -292,7 +295,7 @@ static void _tls_sock_wait(tls_t * tls, int error)
     } while (ret == -1 && errno == EINTR);
 }
 
-static void _tls_set_error(tls_t * tls, int error)
+static void _tls_set_error(tls_t *tls, int error)
 {
     if (error != 0 && !tls_is_recoverable(error)) {
         xmpp_debug(tls->ctx, "tls", "error=%d errno=%d", error, errno);
@@ -301,7 +304,7 @@ static void _tls_set_error(tls_t * tls, int error)
     tls->lasterror = error;
 }
 
-static void _tls_log_error(xmpp_ctx_t * ctx)
+static void _tls_log_error(xmpp_ctx_t *ctx)
 {
     unsigned long e;
     char buf[256];
@@ -315,10 +318,10 @@ static void _tls_log_error(xmpp_ctx_t * ctx)
     } while (e != 0);
 }
 
-static void _tls_dump_cert_info(tls_t * tls)
+static void _tls_dump_cert_info(tls_t *tls)
 {
-    X509 * cert;
-    char * name;
+    X509 *cert;
+    char *name;
 
     cert = SSL_get_peer_certificate(tls->ssl);
     if (cert == NULL)

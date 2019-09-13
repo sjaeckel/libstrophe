@@ -20,21 +20,21 @@
  */
 
 #include <assert.h>
-#include <string.h>     /* memset, memcpy */
+#include <string.h> /* memset, memcpy */
 
-#include "common.h"     /* xmpp_alloc */
-#include "ostypes.h"    /* uint8_t, size_t */
+#include "common.h"  /* xmpp_alloc */
+#include "ostypes.h" /* uint8_t, size_t */
 #include "sha1.h"
-#include "snprintf.h"   /* xmpp_snprintf */
-#include "strophe.h"    /* xmpp_ctx_t, xmpp_free */
+#include "snprintf.h" /* xmpp_snprintf */
+#include "strophe.h"  /* xmpp_ctx_t, xmpp_free */
 
 struct _xmpp_sha1_t {
-    xmpp_ctx_t * xmpp_ctx;
+    xmpp_ctx_t *xmpp_ctx;
     SHA1_CTX ctx;
     uint8_t digest[SHA1_DIGEST_SIZE];
 };
 
-static char * digest_to_string(const uint8_t * digest, char * s, size_t len)
+static char *digest_to_string(const uint8_t *digest, char *s, size_t len)
 {
     int i;
 
@@ -47,9 +47,9 @@ static char * digest_to_string(const uint8_t * digest, char * s, size_t len)
     return s;
 }
 
-static char * digest_to_string_alloc(xmpp_ctx_t * ctx, const uint8_t * digest)
+static char *digest_to_string_alloc(xmpp_ctx_t *ctx, const uint8_t *digest)
 {
-    char * s;
+    char *s;
     size_t slen;
 
     slen = SHA1_DIGEST_SIZE * 2 + 1;
@@ -73,7 +73,7 @@ static char * digest_to_string_alloc(xmpp_ctx_t * ctx, const uint8_t * digest)
  *
  *  @ingroup Digests
  */
-char * xmpp_sha1(xmpp_ctx_t * ctx, const unsigned char * data, size_t len)
+char *xmpp_sha1(xmpp_ctx_t *ctx, const unsigned char *data, size_t len)
 {
     uint8_t digest[SHA1_DIGEST_SIZE];
 
@@ -91,8 +91,8 @@ char * xmpp_sha1(xmpp_ctx_t * ctx, const unsigned char * data, size_t len)
  *
  *  @ingroup Digests
  */
-void xmpp_sha1_digest(const unsigned char * data, size_t len,
-                      unsigned char * digest)
+void xmpp_sha1_digest(const unsigned char *data, size_t len,
+                      unsigned char *digest)
 {
     crypto_SHA1((const uint8_t *)data, len, digest);
 }
@@ -117,9 +117,9 @@ void xmpp_sha1_digest(const unsigned char * data, size_t len,
  *
  *  @ingroup Digests
  */
-xmpp_sha1_t * xmpp_sha1_new(xmpp_ctx_t * ctx)
+xmpp_sha1_t *xmpp_sha1_new(xmpp_ctx_t *ctx)
 {
-    xmpp_sha1_t * sha1;
+    xmpp_sha1_t *sha1;
 
     sha1 = xmpp_alloc(ctx, sizeof(*sha1));
     if (sha1) {
@@ -136,7 +136,7 @@ xmpp_sha1_t * xmpp_sha1_new(xmpp_ctx_t * ctx)
  *
  *  @ingroup Digests
  */
-void xmpp_sha1_free(xmpp_sha1_t * sha1)
+void xmpp_sha1_free(xmpp_sha1_t *sha1)
 {
     xmpp_free(sha1->xmpp_ctx, sha1);
 }
@@ -150,7 +150,7 @@ void xmpp_sha1_free(xmpp_sha1_t * sha1)
  *
  *  @ingroup Digests
  */
-void xmpp_sha1_update(xmpp_sha1_t * sha1, const unsigned char * data, size_t len)
+void xmpp_sha1_update(xmpp_sha1_t *sha1, const unsigned char *data, size_t len)
 {
     crypto_SHA1_Update(&sha1->ctx, data, len);
 }
@@ -163,7 +163,7 @@ void xmpp_sha1_update(xmpp_sha1_t * sha1, const unsigned char * data, size_t len
  *
  *  @ingroup Digests
  */
-void xmpp_sha1_final(xmpp_sha1_t * sha1)
+void xmpp_sha1_final(xmpp_sha1_t *sha1)
 {
     crypto_SHA1_Final(&sha1->ctx, sha1->digest);
 }
@@ -180,7 +180,7 @@ void xmpp_sha1_final(xmpp_sha1_t * sha1)
  *
  *  @ingroup Digests
  */
-char * xmpp_sha1_to_string(xmpp_sha1_t * sha1, char * s, size_t slen)
+char *xmpp_sha1_to_string(xmpp_sha1_t *sha1, char *s, size_t slen)
 {
     return digest_to_string(sha1->digest, s, slen);
 }
@@ -196,7 +196,7 @@ char * xmpp_sha1_to_string(xmpp_sha1_t * sha1, char * s, size_t slen)
  *
  *  @ingroup Digests
  */
-char * xmpp_sha1_to_string_alloc(xmpp_sha1_t * sha1)
+char *xmpp_sha1_to_string_alloc(xmpp_sha1_t *sha1)
 {
     return digest_to_string_alloc(sha1->xmpp_ctx, sha1->digest);
 }
@@ -208,15 +208,15 @@ char * xmpp_sha1_to_string_alloc(xmpp_sha1_t * sha1)
  *
  *  @ingroup Digests
  */
-void xmpp_sha1_to_digest(xmpp_sha1_t * sha1, unsigned char * digest)
+void xmpp_sha1_to_digest(xmpp_sha1_t *sha1, unsigned char *digest)
 {
     assert(SHA1_DIGEST_SIZE == XMPP_SHA1_DIGEST_SIZE);
     memcpy(digest, sha1->digest, SHA1_DIGEST_SIZE);
 }
 
-
 /* Base64 encoding routines. Implemented according to RFC 3548. */
 
+/* clang-format off */
 /* map of all byte values to the base64 values, or to
    '65' which indicates an invalid character. '=' is '64' */
 static const unsigned char _base64_invcharmap[256] = {
@@ -251,18 +251,19 @@ static const char _base64_charmap[65] = {
     '4','5','6','7', '8','9','+','/',
     '='
 };
+/* clang-format on */
 
 static size_t base64_encoded_len(const size_t len)
 {
     /* encoded steam is 4 bytes for every three, rounded up */
-    return ((len + 2)/3) << 2;
+    return ((len + 2) / 3) << 2;
 }
 
-static char * base64_encode(xmpp_ctx_t * ctx,
-                            const unsigned char * const buffer, const size_t len)
+static char *base64_encode(xmpp_ctx_t *ctx, const unsigned char *const buffer,
+                           const size_t len)
 {
     size_t clen;
-    char * cbuf, *c;
+    char *cbuf, *c;
     uint32_t word, hextet;
     size_t i;
 
@@ -272,7 +273,7 @@ static char * base64_encode(xmpp_ctx_t * ctx,
         c = cbuf;
         /* loop over data, turning every 3 bytes into 4 characters */
         for (i = 0; i + 2 < len; i += 3) {
-            word = buffer[i] << 16 | buffer[i+1] << 8 | buffer[i+2];
+            word = buffer[i] << 16 | buffer[i + 1] << 8 | buffer[i + 2];
             hextet = (word & 0x00FC0000) >> 18;
             *c++ = _base64_charmap[hextet];
             hextet = (word & 0x0003F000) >> 12;
@@ -287,20 +288,20 @@ static char * base64_encode(xmpp_ctx_t * ctx,
         case 0:
             break;
         case 1:
-            hextet = (buffer[len-1] & 0xFC) >> 2;
+            hextet = (buffer[len - 1] & 0xFC) >> 2;
             *c++ = _base64_charmap[hextet];
-            hextet = (buffer[len-1] & 0x03) << 4;
+            hextet = (buffer[len - 1] & 0x03) << 4;
             *c++ = _base64_charmap[hextet];
             *c++ = _base64_charmap[64]; /* pad */
             *c++ = _base64_charmap[64]; /* pad */
             break;
         case 2:
-            hextet = (buffer[len-2] & 0xFC) >> 2;
+            hextet = (buffer[len - 2] & 0xFC) >> 2;
             *c++ = _base64_charmap[hextet];
-            hextet = ((buffer[len-2] & 0x03) << 4) |
-                     ((buffer[len-1] & 0xF0) >> 4);
+            hextet = ((buffer[len - 2] & 0x03) << 4) |
+                     ((buffer[len - 1] & 0xF0) >> 4);
             *c++ = _base64_charmap[hextet];
-            hextet = (buffer[len-1] & 0x0F) << 2;
+            hextet = (buffer[len - 1] & 0x0F) << 2;
             *c++ = _base64_charmap[hextet];
             *c++ = _base64_charmap[64]; /* pad */
             break;
@@ -311,41 +312,47 @@ static char * base64_encode(xmpp_ctx_t * ctx,
     return cbuf;
 }
 
-static size_t base64_decoded_len(const char * const buffer, const size_t len)
+static size_t base64_decoded_len(const char *const buffer, const size_t len)
 {
     size_t nudge = 0;
     unsigned char c;
     size_t i;
 
-    if (len < 4) return 0;
+    if (len < 4)
+        return 0;
 
     /* count the padding characters for the remainder */
     for (i = len; i > 0; --i) {
-        c = _base64_invcharmap[(unsigned char)buffer[i-1]];
-        if (c < 64) break;
-        if (c == 64) ++nudge;
-        if (c > 64) return 0;
+        c = _base64_invcharmap[(unsigned char)buffer[i - 1]];
+        if (c < 64)
+            break;
+        if (c == 64)
+            ++nudge;
+        if (c > 64)
+            return 0;
     }
-    if (nudge > 2) return 0;
+    if (nudge > 2)
+        return 0;
 
     /* decoded steam is 3 bytes for every four */
     return 3 * (len >> 2) - nudge;
 }
 
-static void base64_decode(xmpp_ctx_t * ctx,
-                          const char * const buffer, const size_t len,
-                          unsigned char ** out, size_t * outlen)
+static void base64_decode(xmpp_ctx_t *ctx, const char *const buffer,
+                          const size_t len, unsigned char **out, size_t *outlen)
 {
     size_t dlen;
-    unsigned char * dbuf, *d;
+    unsigned char *dbuf, *d;
     uint32_t word, hextet = 0;
     size_t i;
 
     /* len must be a multiple of 4 */
-    if (len & 0x03) goto _base64_error;
+    if (len & 0x03)
+        goto _base64_error;
 
     dlen = base64_decoded_len(buffer, len);
-    if (dlen == 0) goto _base64_error;
+    if (dlen == 0)
+        goto _base64_error;
 
     dbuf = xmpp_alloc(ctx, dlen + 1);
     if (dbuf != NULL) {
@@ -353,22 +360,27 @@ static void base64_decode(xmpp_ctx_t * ctx,
         /* loop over each set of 4 characters, decoding 3 bytes */
         for (i = 0; i + 3 < len; i += 4) {
             hextet = _base64_invcharmap[(unsigned char)buffer[i]];
-            if (hextet & 0xC0) break;
+            if (hextet & 0xC0)
+                break;
             word = hextet << 18;
-            hextet = _base64_invcharmap[(unsigned char)buffer[i+1]];
-            if (hextet & 0xC0) break;
+            hextet = _base64_invcharmap[(unsigned char)buffer[i + 1]];
+            if (hextet & 0xC0)
+                break;
             word |= hextet << 12;
-            hextet = _base64_invcharmap[(unsigned char)buffer[i+2]];
-            if (hextet & 0xC0) break;
+            hextet = _base64_invcharmap[(unsigned char)buffer[i + 2]];
+            if (hextet & 0xC0)
+                break;
             word |= hextet << 6;
-            hextet = _base64_invcharmap[(unsigned char)buffer[i+3]];
-            if (hextet & 0xC0) break;
+            hextet = _base64_invcharmap[(unsigned char)buffer[i + 3]];
+            if (hextet & 0xC0)
+                break;
             word |= hextet;
             *d++ = (word & 0x00FF0000) >> 16;
             *d++ = (word & 0x0000FF00) >> 8;
             *d++ = (word & 0x000000FF);
         }
-        if (hextet > 64) goto _base64_decode_error;
+        if (hextet > 64)
+            goto _base64_decode_error;
         /* handle the remainder */
         switch (dlen % 3) {
         case 0:
@@ -376,33 +388,41 @@ static void base64_decode(xmpp_ctx_t * ctx,
             break;
         case 1:
             /* redo the last quartet, checking for correctness */
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-4]];
-            if (hextet & 0xC0) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 4]];
+            if (hextet & 0xC0)
+                goto _base64_decode_error;
             word = hextet << 2;
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-3]];
-            if (hextet & 0xC0) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 3]];
+            if (hextet & 0xC0)
+                goto _base64_decode_error;
             word |= hextet >> 4;
             *d++ = word & 0xFF;
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-2]];
-            if (hextet != 64) goto _base64_decode_error;
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-1]];
-            if (hextet != 64) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 2]];
+            if (hextet != 64)
+                goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 1]];
+            if (hextet != 64)
+                goto _base64_decode_error;
             break;
         case 2:
             /* redo the last quartet, checking for correctness */
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-4]];
-            if (hextet & 0xC0) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 4]];
+            if (hextet & 0xC0)
+                goto _base64_decode_error;
             word = hextet << 10;
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-3]];
-            if (hextet & 0xC0) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 3]];
+            if (hextet & 0xC0)
+                goto _base64_decode_error;
             word |= hextet << 4;
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-2]];
-            if (hextet & 0xC0) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 2]];
+            if (hextet & 0xC0)
+                goto _base64_decode_error;
             word |= hextet >> 2;
             *d++ = (word & 0xFF00) >> 8;
             *d++ = (word & 0x00FF);
-            hextet = _base64_invcharmap[(unsigned char)buffer[len-1]];
-            if (hextet != 64) goto _base64_decode_error;
+            hextet = _base64_invcharmap[(unsigned char)buffer[len - 1]];
+            if (hextet != 64)
+                goto _base64_decode_error;
             break;
         }
         *d = '\0';
@@ -430,7 +450,7 @@ _base64_error:
  *
  *  @ingroup Encodings
  */
-char * xmpp_base64_encode(xmpp_ctx_t * ctx, const unsigned char * data, size_t len)
+char *xmpp_base64_encode(xmpp_ctx_t *ctx, const unsigned char *data, size_t len)
 {
     return base64_encode(ctx, data, len);
 }
@@ -448,9 +468,9 @@ char * xmpp_base64_encode(xmpp_ctx_t * ctx, const unsigned char * data, size_t l
  *
  *  @ingroup Encodings
  */
-char * xmpp_base64_decode_str(xmpp_ctx_t * ctx, const char * base64, size_t len)
+char *xmpp_base64_decode_str(xmpp_ctx_t *ctx, const char *base64, size_t len)
 {
-    unsigned char * buf = NULL;
+    unsigned char *buf = NULL;
     size_t buflen;
 
     if (len == 0) {
@@ -484,8 +504,8 @@ char * xmpp_base64_decode_str(xmpp_ctx_t * ctx, const char * base64, size_t len)
  *
  *  @ingroup Encodings
  */
-void xmpp_base64_decode_bin(xmpp_ctx_t * ctx, const char * base64, size_t len,
-                            unsigned char ** out, size_t * outlen)
+void xmpp_base64_decode_bin(xmpp_ctx_t *ctx, const char *base64, size_t len,
+                            unsigned char **out, size_t *outlen)
 {
     base64_decode(ctx, base64, len, out, outlen);
 }
