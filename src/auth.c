@@ -636,7 +636,9 @@ static void _auth(xmpp_conn_t *const conn)
         xmpp_disconnect(conn);
     } else if (conn->sasl_support & SASL_MASK_SCRAM) {
         scram_ctx = xmpp_alloc(conn->ctx, sizeof(*scram_ctx));
-        scram_ctx->alg = &scram_sha1;
+        if (conn->sasl_support & SASL_MASK_SCRAMSHA512) scram_ctx->alg = &scram_sha512;
+        else if (conn->sasl_support & SASL_MASK_SCRAMSHA256) scram_ctx->alg = &scram_sha256;
+        else if (conn->sasl_support & SASL_MASK_SCRAMSHA1) scram_ctx->alg = &scram_sha1;
         auth = _make_sasl_auth(conn, scram_ctx->alg->scram_name);
         if (!auth) {
             disconnect_mem_error(conn);
