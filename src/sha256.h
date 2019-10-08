@@ -11,8 +11,7 @@
 extern "C" {
 #endif
 
-/* make sure the stdint.h types are available */
-#include "ostypes.h"
+#include "sha.h"
 
 
 typedef struct {

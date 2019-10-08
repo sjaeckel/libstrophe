@@ -1,4 +1,6 @@
 /* Code originally from LibTomCrypt -- Licensed under the Public Domain/WTFPL2.0 */
+#include <string.h>
+
 #include "sha256.h"
 #include "sha.h"
 
