@@ -67,7 +67,7 @@ static void test_df(void)
     printf("Derivation function tests (SCRAM_SHA1_Hi).\n");
     for (i = 0; i < ARRAY_SIZE(df_vectors); ++i) {
         printf("Test #%d: ", (int)i + 1);
-        SCRAM_SHA1_Hi((uint8_t *)df_vectors[i].P, df_vectors[i].P_len,
+        SCRAM_Hi(&scram_sha1, (uint8_t *)df_vectors[i].P, df_vectors[i].P_len,
                       (uint8_t *)df_vectors[i].S, df_vectors[i].S_len,
                       df_vectors[i].c, dk);
         s = test_bin_to_hex(dk, sizeof(dk));
@@ -119,10 +119,10 @@ static void test_scram(void)
                  scram_vectors[i].challenge, scram_vectors[i].response);
         test_hex_to_bin(scram_vectors[i].salt, salt, &salt_len);
 
-        SCRAM_SHA1_ClientKey((uint8_t *)scram_vectors[i].password,
+        SCRAM_ClientKey(&scram_sha1, (uint8_t *)scram_vectors[i].password,
                              strlen(scram_vectors[i].password), salt, salt_len,
                              scram_vectors[i].i, key);
-        SCRAM_SHA1_ClientSignature(key, (uint8_t *)auth, strlen(auth), sign);
+        SCRAM_ClientSignature(&scram_sha1, key, (uint8_t *)auth, strlen(auth), sign);
         for (j = 0; j < SHA1_DIGEST_SIZE; j++) {
             sign[j] ^= key[j];
         }

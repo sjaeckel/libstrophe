@@ -88,7 +88,7 @@ static int _handle_digestmd5_rspauth(xmpp_conn_t *const conn,
 static int _handle_scram_sha1_challenge(xmpp_conn_t *const conn,
                                         xmpp_stanza_t *const stanza,
                                         void *const userdata);
-static char *_make_scram_sha1_init_msg(xmpp_conn_t *const conn);
+static char *_make_scram_init_msg(xmpp_conn_t *const conn);
 
 static int _handle_missing_features_sasl(xmpp_conn_t *const conn,
                                          void *const userdata);
@@ -425,6 +425,11 @@ static int _handle_digestmd5_rspauth(xmpp_conn_t *const conn,
     return 1;
 }
 
+struct scram_user_data {
+    char *scram_init;
+    const struct hash_alg *alg;
+};
+
 /* handle the challenge phase of SCRAM-SHA-1 auth */
 static int _handle_scram_sha1_challenge(xmpp_conn_t *const conn,
                                         xmpp_stanza_t *const stanza,
@@ -433,13 +438,13 @@ static int _handle_scram_sha1_challenge(xmpp_conn_t *const conn,
     char *text;
     char *response;
     xmpp_stanza_t *auth, *authdata;
-    const char *name;
+    const char *name, *scram_name;
     char *challenge;
-    char *scram_init = (char *)userdata;
+    struct scram_user_data *scram_ctx = (struct scram_user_data *)userdata;
 
     name = xmpp_stanza_get_name(stanza);
     xmpp_debug(conn->ctx, "xmpp",
-               "handle SCRAM-SHA-1 (challenge) called for %s", name);
+               "handle %s (challenge) called for %s", scram_ctx->alg->scram_name, name);
 
     if (strcmp(name, "challenge") == 0) {
         text = xmpp_stanza_get_text(stanza);
@@ -451,8 +456,9 @@ static int _handle_scram_sha1_challenge(xmpp_conn_t *const conn,
         if (!challenge)
             goto err;
 
-        response = sasl_scram_sha1(conn->ctx, challenge, scram_init, conn->jid,
-                                   conn->pass);
+        response = sasl_scram(conn->ctx, scram_ctx->alg,
+                                challenge, scram_ctx->scram_init,
+                                conn->jid, conn->pass);
         xmpp_free(conn->ctx, challenge);
         if (!response)
             goto err;
@@ -476,8 +482,10 @@ static int _handle_scram_sha1_challenge(xmpp_conn_t *const conn,
         xmpp_stanza_release(auth);
 
     } else {
-        xmpp_free(conn->ctx, scram_init);
-        return _handle_sasl_result(conn, stanza, "SCRAM-SHA-1");
+        scram_name = scram_ctx->alg->scram_name;
+        xmpp_free(conn->ctx, scram_ctx->scram_init);
+        xmpp_free(conn->ctx, scram_ctx);
+        return _handle_sasl_result(conn, stanza, (void*)scram_name);
     }
 
     return 1;
@@ -487,12 +495,13 @@ err_release_auth:
 err_free_response:
     xmpp_free(conn->ctx, response);
 err:
-    xmpp_free(conn->ctx, scram_init);
+    xmpp_free(conn->ctx, scram_ctx->scram_init);
+    xmpp_free(conn->ctx, scram_ctx);
     disconnect_mem_error(conn);
     return 0;
 }
 
-static char *_make_scram_sha1_init_msg(xmpp_conn_t *const conn)
+static char *_make_scram_init_msg(xmpp_conn_t *const conn)
 {
     xmpp_ctx_t *ctx = conn->ctx;
     size_t message_len;
@@ -553,8 +562,8 @@ static xmpp_stanza_t *_make_sasl_auth(xmpp_conn_t *const conn,
 static void _auth(xmpp_conn_t *const conn)
 {
     xmpp_stanza_t *auth, *authdata, *query, *child, *iq;
+    struct scram_user_data *scram_ctx;
     char *str, *authid;
-    char *scram_init;
     int anonjid;
 
     /* if there is no node in conn->jid, we assume anonymous connect */
@@ -625,25 +634,29 @@ static void _auth(xmpp_conn_t *const conn)
         xmpp_error(conn->ctx, "auth",
                    "No node in JID, and SASL ANONYMOUS unsupported.");
         xmpp_disconnect(conn);
-    } else if (conn->sasl_support & SASL_MASK_SCRAMSHA1) {
-        auth = _make_sasl_auth(conn, "SCRAM-SHA-1");
+    } else if (conn->sasl_support & SASL_MASK_SCRAM) {
+        scram_ctx = xmpp_alloc(conn->ctx, sizeof(*scram_ctx));
+        scram_ctx->alg = &scram_sha1;
+        auth = _make_sasl_auth(conn, scram_ctx->alg->scram_name);
         if (!auth) {
             disconnect_mem_error(conn);
             return;
         }
 
         /* don't free scram_init on success */
-        scram_init = _make_scram_sha1_init_msg(conn);
-        if (!scram_init) {
+        scram_ctx->scram_init = _make_scram_init_msg(conn);
+        if (!scram_ctx->scram_init) {
+            xmpp_free(conn->ctx, scram_ctx);
             xmpp_stanza_release(auth);
             disconnect_mem_error(conn);
             return;
         }
 
-        str = xmpp_base64_encode(conn->ctx, (unsigned char *)scram_init,
-                                 strlen(scram_init));
+        str = xmpp_base64_encode(conn->ctx, (unsigned char *)scram_ctx->scram_init,
+                                 strlen(scram_ctx->scram_init));
         if (!str) {
-            xmpp_free(conn->ctx, scram_init);
+            xmpp_free(conn->ctx, scram_ctx->scram_init);
+            xmpp_free(conn->ctx, scram_ctx);
             xmpp_stanza_release(auth);
             disconnect_mem_error(conn);
             return;
@@ -652,7 +665,8 @@ static void _auth(xmpp_conn_t *const conn)
         authdata = xmpp_stanza_new(conn->ctx);
         if (!authdata) {
             xmpp_free(conn->ctx, str);
-            xmpp_free(conn->ctx, scram_init);
+            xmpp_free(conn->ctx, scram_ctx->scram_init);
+            xmpp_free(conn->ctx, scram_ctx);
             xmpp_stanza_release(auth);
             disconnect_mem_error(conn);
             return;
@@ -663,13 +677,13 @@ static void _auth(xmpp_conn_t *const conn)
         xmpp_stanza_release(authdata);
 
         handler_add(conn, _handle_scram_sha1_challenge, XMPP_NS_SASL, NULL,
-                    NULL, (void *)scram_init);
+                    NULL, (void *)scram_ctx);
 
         xmpp_send(conn, auth);
         xmpp_stanza_release(auth);
 
         /* SASL SCRAM-SHA-1 was tried, unset flag */
-        conn->sasl_support &= ~SASL_MASK_SCRAMSHA1;
+        conn->sasl_support &= ~scram_ctx->alg->mask;
     } else if (conn->sasl_support & SASL_MASK_DIGESTMD5) {
         auth = _make_sasl_auth(conn, "DIGEST-MD5");
         if (!auth) {

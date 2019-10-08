@@ -374,9 +374,9 @@ char *sasl_digest_md5(xmpp_ctx_t *ctx, const char *challenge, const char *jid,
 }
 
 /** generate auth response string for the SASL SCRAM-SHA-1 mechanism */
-char *sasl_scram_sha1(xmpp_ctx_t *ctx, const char *challenge,
-                      const char *first_bare, const char *jid,
-                      const char *password)
+char *sasl_scram(xmpp_ctx_t *ctx, const struct hash_alg *alg,
+                 const char *challenge, const char *first_bare,
+                 const char *jid, const char *password)
 {
     uint8_t key[SHA1_DIGEST_SIZE];
     uint8_t sign[SHA1_DIGEST_SIZE];
@@ -396,7 +396,6 @@ char *sasl_scram_sha1(xmpp_ctx_t *ctx, const char *challenge,
     char *result = NULL;
     size_t response_len;
     size_t auth_len;
-    int j;
 
     tmp = xmpp_strdup(ctx, challenge);
     if (!tmp) {
@@ -441,12 +440,10 @@ char *sasl_scram_sha1(xmpp_ctx_t *ctx, const char *challenge,
     xmpp_snprintf(auth, auth_len, "%s,%s,%s", first_bare + 3, challenge,
                   response);
 
-    SCRAM_SHA1_ClientKey((uint8_t *)password, strlen(password), (uint8_t *)sval,
+    SCRAM_ClientKey(alg, (uint8_t *)password, strlen(password), (uint8_t *)sval,
                          sval_len, (uint32_t)ival, key);
-    SCRAM_SHA1_ClientSignature(key, (uint8_t *)auth, strlen(auth), sign);
-    for (j = 0; j < SHA1_DIGEST_SIZE; j++) {
-        sign[j] ^= key[j];
-    }
+    SCRAM_ClientSignature(alg, key, (uint8_t *)auth, strlen(auth), sign);
+    SCRAM_ClientProof(alg, sign, key, sign);
 
     sign_b64 = xmpp_base64_encode(ctx, sign, sizeof(sign));
     if (!sign_b64) {
