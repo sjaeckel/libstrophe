@@ -248,6 +248,7 @@ void xmpp_conn_set_keepalive(xmpp_conn_t *conn, int timeout, int interval);
 int xmpp_conn_is_connecting(xmpp_conn_t *conn);
 int xmpp_conn_is_connected(xmpp_conn_t *conn);
 int xmpp_conn_is_disconnected(xmpp_conn_t *conn);
+int xmpp_conn_send_queue_len(const xmpp_conn_t *conn);
 
 int xmpp_connect_client(xmpp_conn_t *conn,
                         const char *altdomain,
