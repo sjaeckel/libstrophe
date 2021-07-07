@@ -134,6 +134,7 @@ void xmpp_run_once(xmpp_ctx_t *ctx, unsigned long timeout)
                 break; /* partial write or an error */
 
             /* all data for this queue item written, delete and move on */
+            xmpp_debug(ctx, "xmpp", "Finished writing queue (%p).", sq);
             xmpp_free(ctx, sq->data);
             tsq = sq;
             sq = sq->next;
