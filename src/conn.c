@@ -67,6 +67,7 @@ static void _handle_stream_end(char *name, void *userdata);
 static void _handle_stream_stanza(xmpp_stanza_t *stanza, void *userdata);
 static unsigned short _conn_default_port(xmpp_conn_t *conn,
                                          xmpp_conn_type_t type);
+static void _queue_element_free(xmpp_ctx_t *ctx, xmpp_send_queue_t *e);
 static void _conn_reset(xmpp_conn_t *conn);
 static int _conn_connect(xmpp_conn_t *conn,
                          const char *domain,
@@ -1138,6 +1139,61 @@ int xmpp_conn_send_queue_len(const xmpp_conn_t *conn)
         return conn->send_queue_len;
 }
 
+/**
+ *  @return The number of entries in the send queue
+ *
+ *  @ingroup Connections
+ */
+void xmpp_conn_send_queue_drop_element(xmpp_conn_t *conn,
+                                       xmpp_queue_element_t which)
+{
+    xmpp_send_queue_t *t, *p;
+    /* empty queue */
+    if (!conn->send_queue_head)
+        return;
+    /* one element in queue */
+    if (conn->send_queue_head == conn->send_queue_tail) {
+        if (conn->send_queue_head->written)
+            return;
+
+        t = conn->send_queue_head;
+        conn->send_queue_head = conn->send_queue_tail = NULL;
+        _queue_element_free(conn->ctx, t);
+        conn->send_queue_len--;
+        return;
+    }
+    switch (which) {
+    case XMPP_QUEUE_OLDEST:
+        /* head is already sent out partially */
+        if (conn->send_queue_head->written) {
+            t = conn->send_queue_head->next;
+            /* there are no more elements in the queue */
+            if (!t)
+                return;
+            conn->send_queue_head->next = t->next;
+        } else {
+            t = conn->send_queue_head;
+            conn->send_queue_head = t->next;
+        }
+        _queue_element_free(conn->ctx, t);
+        conn->send_queue_len--;
+        break;
+    case XMPP_QUEUE_YOUNGEST:
+        t = conn->send_queue_head;
+        do {
+            p = t;
+            t = t->next;
+        } while (t != conn->send_queue_tail);
+        conn->send_queue_tail = p;
+        _queue_element_free(conn->ctx, t);
+        conn->send_queue_len--;
+        break;
+    default:
+        xmpp_error(conn->ctx, "conn", "Unknown queue element %d", which);
+        return;
+    }
+}
+
 /* timed handler for cleanup if normal disconnect procedure takes too long */
 static int _disconnect_cleanup(xmpp_conn_t *conn, void *userdata)
 {
@@ -1358,6 +1414,12 @@ static unsigned short _conn_default_port(xmpp_conn_t *conn,
     };
 }
 
+static void _queue_element_free(xmpp_ctx_t *ctx, xmpp_send_queue_t *e)
+{
+    xmpp_free(ctx, e->data);
+    xmpp_free(ctx, e);
+}
+
 static void _conn_reset(xmpp_conn_t *conn)
 {
     xmpp_ctx_t *ctx = conn->ctx;
@@ -1373,8 +1435,7 @@ static void _conn_reset(xmpp_conn_t *conn)
     while (sq) {
         tsq = sq;
         sq = sq->next;
-        xmpp_free(ctx, tsq->data);
-        xmpp_free(ctx, tsq);
+        _queue_element_free(ctx, tsq);
     }
     conn->send_queue_head = NULL;
     conn->send_queue_tail = NULL;
